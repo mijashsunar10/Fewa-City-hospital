@@ -1,0 +1,204 @@
+:root {
+  --emergency-red: #e11d48;
+  --light-bg: #f9fffd;
+}
+
+/* FLOAT BUTTON */
+.emergency-float {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  width: 60px;
+  height: 60px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 9999;
+  animation: pulse 1.5s infinite;
+}
+
+.emergency-float img {
+  width: 42px;
+}
+
+/* Pulse */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 20px rgba(225, 29, 72, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(225, 29, 72, 0);
+  }
+}
+
+/* BOOK APPOINTMENT */
+.appointment-float {
+  position: fixed;
+  bottom: 95px;
+  right: 30px;
+  width: 52px;
+  height: 52px;
+  background: #25d366;
+  color: #fff;
+  border-radius: 50%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  cursor: pointer;
+  z-index: 9998;
+  text-decoration: none;
+  transition: 0.25s;
+}
+
+.appointment-float:hover {
+  transform: scale(1.1);
+  box-shadow: 0 14px 30px rgba(37, 211, 102, 0.45);
+}
+
+/* Overlay */
+.emergency-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 15px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.emergency-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Popup */
+.emergency-box {
+  background: #fff;
+  width: 520px;
+  max-width: 100%;
+  border-radius: 18px;
+  padding: 45px 35px 35px;
+  text-align: center;
+  position: relative;
+  transform: scale(0.85);
+  transition: transform 0.4s ease;
+}
+
+.emergency-overlay.active .emergency-box {
+  transform: scale(1);
+}
+
+/* Siren */
+.popup-siren img {
+  width: 70px;
+  margin-bottom: 12px;
+  animation: blink 0.9s infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* Title */
+.emergency-box h2 {
+  color: var(--emergency-red);
+  font-size: 26px;
+  margin-bottom: 30px;
+}
+
+/* Grid */
+.emergency-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+
+.emergency-item {
+  background: var(--light-bg);
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.emergency-item span {
+  display: block;
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.emergency-item a {
+  color: var(--emergency-red);
+  font-size: 17px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.emergency-item a:hover {
+  text-decoration: underline;
+}
+
+/* Close Button */
+.close-btn {
+  position: absolute;
+  bottom: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--emergency-red);
+  color: #fff;
+  border: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  font-size: 30px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(225, 29, 72, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.25s;
+}
+
+.close-btn:hover {
+  transform: translateX(-50%) scale(1.08);
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+  .emergency-box {
+    width: 100%;
+    padding: 35px 20px 30px;
+  }
+
+  .emergency-box h2 {
+    font-size: 22px;
+  }
+
+  .emergency-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .popup-siren img {
+    width: 60px;
+  }
+}

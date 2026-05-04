@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Header from './components/Header'
+import Home from './pages/Home'
+import EmergencyContact from './components/EmergencyContact'
 
 function App() {
   return (
@@ -17,17 +19,11 @@ function App() {
         <footer className="bg-slate-900 text-white py-10 text-center">
           <p>&copy; 2026 Fewa City Hospital Pvt. Ltd. All Rights Reserved.</p>
         </footer>
+
+        <EmergencyContact />
       </div>
     </Router>
   )
 }
-
-// Simple Home component for now
-const Home = () => (
-  <div className="py-20 text-center">
-    <h1 className="text-4xl font-bold text-slate-800">Welcome to Fewa City Hospital</h1>
-    <p className="text-slate-600 mt-4">This is your main content area.</p>
-  </div>
-)
 
 export default App
