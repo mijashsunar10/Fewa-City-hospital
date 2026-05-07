@@ -1,0 +1,107 @@
+/* AboutUs.css */
+.alka-hero {
+  padding: 80px 20px;
+  background: url('http://sunilghartimire.com.np/wp-content/uploads/2026/01/unnamed-3-1-rotated.jpg') center/cover no-repeat;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
+}
+
+.alka-wrap {
+  max-width: 1400px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.alka-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.alka-image img {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.alka-content .tag {
+  color: var(--dark-green);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.alka-content h1 {
+  font-size: 48px;
+  margin: 15px 0;
+  line-height: 1.2;
+  color: var(--dark-green);
+}
+
+.heartbeat {
+  font-size: 34px;
+  color: var(--dark-green);
+  margin: 20px 0;
+}
+
+.alka-content p {
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: #000;
+}
+
+.btn {
+  display: inline-block;
+  margin-top: 30px;
+  padding: 16px 38px;
+  background: var(--dark-green);
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.3s ease;
+}
+
+.btn:hover {
+  background: var(--light-green);
+}
+
+/* ===== TABLET ===== */
+@media (max-width: 1024px) {
+  .alka-wrap {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .alka-content h1 {
+    font-size: 40px;
+  }
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  .alka-image img {
+    max-width: 320px;
+  }
+
+  .alka-content h1 {
+    font-size: 32px;
+  }
+
+  .alka-content p {
+    font-size: 1rem;
+  }
+}
+
+/* ===== SMALL MOBILE ===== */
+@media (max-width: 480px) {
+  .alka-content h1 {
+    font-size: 28px;
+  }
+}
