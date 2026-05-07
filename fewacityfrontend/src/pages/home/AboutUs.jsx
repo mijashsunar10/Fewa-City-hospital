@@ -1,8 +1,8 @@
-import React from 'react';
+import { Link } from 'react-router-dom';
 import './AboutUs.css';
 import aboutImg from '../../assets/landing/about.png';
 
-const AboutUs = () => {
+const AboutUs = ({ showLink = true }) => {
   return (
     <section className="alka-hero">
       <div className="alka-wrap">
@@ -26,7 +26,7 @@ const AboutUs = () => {
             Gandaki Province, we Provide Affordable Treatment And Emergency Support 24/7.
           </p>
 
-          <a href="#about" className="btn">More About Us</a>
+          {showLink && <Link to="/about-us" className="btn">More About Us</Link>}
         </div>
       </div>
     </section>

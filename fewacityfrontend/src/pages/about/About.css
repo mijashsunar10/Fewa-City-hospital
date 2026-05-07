@@ -1,0 +1,85 @@
+/* About.css */
+.about-page {
+  width: 100%;
+}
+/* 
+.about-header {
+  background: linear-gradient(rgba(21, 102, 25, 0.9), rgba(21, 102, 25, 0.9)), url('../../assets/landing/landing.png') center/cover no-repeat;
+  padding: 100px 20px;
+  text-align: center;
+  color: #fff;
+}
+
+.about-header h1 {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.about-header p {
+  font-size: 18px;
+  opacity: 0.9;
+} */
+
+.about-details {
+  padding: 80px 20px;
+  background: #f9f9f9;
+}
+
+.about-details .container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+.about-details h2 {
+  text-align: center;
+  font-size: 36px;
+  color: #156619;
+  margin-bottom: 50px;
+  position: relative;
+}
+
+.about-details h2::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 3px;
+  background: #156619;
+  margin: 15px auto 0;
+}
+
+.mission-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.mission-item {
+  background: #fff;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  border-left: 5px solid #156619;
+}
+
+.mission-item h3 {
+  font-size: 24px;
+  color: #156619;
+  margin-bottom: 15px;
+}
+
+.mission-item p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #555;
+}
+
+@media (max-width: 768px) {
+  .mission-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .about-header h1 {
+    font-size: 36px;
+  }
+}
