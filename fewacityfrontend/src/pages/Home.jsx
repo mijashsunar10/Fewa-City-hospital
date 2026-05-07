@@ -4,6 +4,7 @@ import Hero from './home/Hero';
 import AboutUs from './home/AboutUs';
 import MedicalServices from './home/MedicalServices';
 import Departments from './home/Departments';
+import HospitalLocation from './home/HospitalLocation';
 
 const Home = () => {
   return (
@@ -12,6 +13,7 @@ const Home = () => {
       <AboutUs />
       <MedicalServices />
       <Departments />
+      <HospitalLocation />
       
       {/* You can add more sections here */}
     </div>

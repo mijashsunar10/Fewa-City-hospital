@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Header from './components/Header'
+import Footer from './components/Footer'
 import Home from './pages/Home'
 import EmergencyContact from './components/EmergencyContact'
 
@@ -16,9 +17,7 @@ function App() {
           </Routes>
         </main>
 
-        <footer className="bg-slate-900 text-white py-10 text-center">
-          <p>&copy; 2026 Fewa City Hospital Pvt. Ltd. All Rights Reserved.</p>
-        </footer>
+        <Footer />
 
         <EmergencyContact />
       </div>
