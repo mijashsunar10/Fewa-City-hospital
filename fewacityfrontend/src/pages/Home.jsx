@@ -3,6 +3,7 @@ import './Home.css';
 import Hero from './home/Hero';
 import AboutUs from './home/AboutUs';
 import MedicalServices from './home/MedicalServices';
+import Departments from './home/Departments';
 
 const Home = () => {
   return (
@@ -10,6 +11,7 @@ const Home = () => {
       <Hero />
       <AboutUs />
       <MedicalServices />
+      <Departments />
       
       {/* You can add more sections here */}
     </div>
@@ -17,3 +19,5 @@ const Home = () => {
 };
 
 export default Home;
+
+

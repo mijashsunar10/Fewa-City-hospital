@@ -1,0 +1,135 @@
+/* DEPARTMENTS SECTION */
+.departments-section {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #e9f6ec, #ffffff);
+  padding: 80px 20px;
+  color: #1f2937;
+}
+
+.container {
+  max-width: 1300px;
+  margin: auto;
+}
+
+/* Section Title */
+.section-title {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.section-title h1 {
+  font-size: 36px;
+  color: #156619;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.section-title p {
+  font-size: 16px;
+  color: #4b5563;
+  max-width: 900px;
+  margin: auto;
+  font-weight: 500;
+  line-height: 1.7;
+}
+
+/* Departments Grid */
+.departments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 25px;
+}
+
+/* Department Card */
+.department-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 35px 20px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 16px;
+  color: #156619;
+  border: 2px solid #c7e6c7;
+  box-shadow: 0 12px 30px rgba(21, 102, 25, 0.1);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.4s ease;
+  z-index: 1;
+}
+
+.department-card::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: calc(100% + 20px);
+  height: calc(100% + 20px);
+  border-radius: 20px;
+  background: linear-gradient(135deg, #156619, #43a047);
+  opacity: 0;
+  transition: all 0.4s ease;
+  z-index: -1;
+}
+
+.department-card:hover {
+  color: #ffffff;
+  transform: translateY(-8px) scale(1.05);
+}
+
+.department-card:hover::before {
+  opacity: 1;
+}
+
+/* Links in grid */
+.departments-grid a {
+  text-decoration: none;
+}
+
+/* View All Button */
+.services-btn-wrap {
+  margin-top: 50px;
+  text-align: center;
+}
+
+.view-all-btn {
+  display: inline-block;
+  padding: 16px 46px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #156619;
+  border-radius: 50px;
+  transition: all 0.35s ease;
+  box-shadow: 0 14px 35px rgba(21, 102, 25, 0.3);
+  text-decoration: none;
+}
+
+.view-all-btn:hover {
+  background: #0f4d14;
+  transform: translateY(-4px);
+  box-shadow: 0 22px 55px rgba(21, 102, 25, 0.45);
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .departments-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .departments-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .section-title h1 {
+    font-size: 28px;
+  }
+
+  .section-title p {
+    font-size: 15px;
+  }
+}
