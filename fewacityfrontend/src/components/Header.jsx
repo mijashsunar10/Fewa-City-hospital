@@ -89,8 +89,8 @@ const Header = () => {
         `}>
           <NavLink to="/">Home</NavLink>
           <NavLink to="/about-us/">About Us</NavLink>
-          <NavLink to="/department/">Departments</NavLink>
-          <NavLink to="/docotors/">Doctors</NavLink>
+          <NavLink to="/departments">Departments</NavLink>
+          <NavLink to="/doctors">Doctors</NavLink>
           <NavLink to="/services/">Services</NavLink>
           <NavLink to="/pcl-nursing">PCL Nursing</NavLink>
           <NavLink to="/gallery">Gallery</NavLink>

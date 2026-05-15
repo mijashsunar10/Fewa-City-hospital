@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './Departments.css';
 
 const Departments = () => {
@@ -34,14 +35,14 @@ const Departments = () => {
         {/* Departments Grid */}
         <div className="departments-grid">
           {departments.map((dept, index) => (
-            <a key={index} href={dept.link}>
+            <Link key={index} to={dept.link}>
               <div className="department-card">{dept.name}</div>
-            </a>
+            </Link>
           ))}
         </div>
 
         <div className="services-btn-wrap">
-          <a href="/departments" className="view-all-btn">View Department Details</a>
+          <Link to="/departments" className="view-all-btn">View Department Details</Link>
         </div>
       </div>
     </section>
