@@ -5,6 +5,7 @@ import Home from './pages/Home'
 import About from './pages/about/About'
 import DepartmentsPage from './pages/departments/DepartmentsPage'
 import DoctorsPage from './pages/doctors/DoctorsPage'
+import CollegePrograms from './pages/college/CollegePrograms'
 import EmergencyContact from './components/EmergencyContact'
 
 function App() {
@@ -19,6 +20,8 @@ function App() {
             <Route path="/about-us/" element={<About />} />
             <Route path="/departments" element={<DepartmentsPage />} />
             <Route path="/doctors" element={<DoctorsPage />} />
+            <Route path="/college-program" element={<CollegePrograms />} />
+            <Route path="/pcl-nursing" element={<CollegePrograms />} />
           </Routes>
         </main>
 
