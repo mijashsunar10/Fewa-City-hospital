@@ -63,8 +63,10 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('fewa_admin_user');
   };
 
+  const token = user ? user.token : null;
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
