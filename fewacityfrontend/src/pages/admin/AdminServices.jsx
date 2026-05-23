@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Plus, Edit, Trash2, Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Upload, FileText, Image as ImageIcon, Search } from 'lucide-react';
 import axios from 'axios';
+import './AdminDashboard.css';
 import './AdminServices.css';
 
 const CATEGORIES = [
