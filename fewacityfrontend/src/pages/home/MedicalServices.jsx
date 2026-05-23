@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './MedicalServices.css';
 import labImg from '../../assets/services/lab.png';
 import xrayImg from '../../assets/services/xray.png';
@@ -46,7 +47,7 @@ const MedicalServices = () => {
         </div>
 
         <div className="services-btn-wrap">
-          <a href="/services" className="view-all-btn">View All Services</a>
+          <Link to="/services" className="view-all-btn">View All Services</Link>
         </div>
       </div>
     </section>

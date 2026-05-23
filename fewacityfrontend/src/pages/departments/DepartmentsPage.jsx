@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
+import { Search, Info } from 'lucide-react';
 import './DepartmentsPage.css';
 
 const departmentsData = {
@@ -440,6 +441,7 @@ const departmentsData = {
 
 const DepartmentsPage = () => {
   const [activeDept, setActiveDept] = useState('anesthesia');
+  const [searchTerm, setSearchTerm] = useState('');
   const location = useLocation();
 
   useEffect(() => {
@@ -447,13 +449,32 @@ const DepartmentsPage = () => {
     if (hash && departmentsData[hash]) {
       setActiveDept(hash);
       window.scrollTo(0, 0);
+    } else {
+      window.scrollTo(0, 0);
     }
   }, [location]);
 
+  // Filter departments by title, description or doctor names
+  const filteredDeptKeys = useMemo(() => {
+    return Object.keys(departmentsData).filter(key => {
+      const dept = departmentsData[key];
+      const matchesSearch = 
+        dept.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        dept.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        dept.doctors.some(doc => doc.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      return matchesSearch;
+    });
+  }, [searchTerm]);
+
+  // Automatically switch to first matching department if active one is filtered out
+  useEffect(() => {
+    if (filteredDeptKeys.length > 0 && !filteredDeptKeys.includes(activeDept)) {
+      setActiveDept(filteredDeptKeys[0]);
+    }
+  }, [filteredDeptKeys, activeDept]);
+
   const handleDeptChange = (deptId) => {
     setActiveDept(deptId);
-    // Optional: update hash without reloading
-    // window.history.pushState(null, null, `#${deptId}`);
   };
 
   const currentDept = departmentsData[activeDept];
@@ -463,22 +484,44 @@ const DepartmentsPage = () => {
       <div className="department-container">
         {/* LEFT SIDE */}
         <aside className="department-list">
+          {/* SEARCH BAR */}
+          <div className="dept-search-wrapper">
+            <Search className="dept-search-icon" />
+            <input
+              type="text"
+              placeholder="Search departments or doctors..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="dept-search-input"
+            />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="dept-search-clear"
+              >
+                &times;
+              </button>
+            )}
+          </div>
+
           {/* MOBILE DROPDOWN */}
-          <select 
-            className="dept-dropdown" 
-            value={activeDept} 
-            onChange={(e) => handleDeptChange(e.target.value)}
-          >
-            {Object.keys(departmentsData).map(key => (
-              <option key={key} value={key}>
-                {departmentsData[key].title.replace(' Department', '')}
-              </option>
-            ))}
-          </select>
+          {filteredDeptKeys.length > 0 && (
+            <select 
+              className="dept-dropdown" 
+              value={activeDept} 
+              onChange={(e) => handleDeptChange(e.target.value)}
+            >
+              {filteredDeptKeys.map(key => (
+                <option key={key} value={key}>
+                  {departmentsData[key].title.replace(' Department', '')}
+                </option>
+              ))}
+            </select>
+          )}
 
           {/* DESKTOP BUTTONS */}
           <div className="dept-buttons">
-            {Object.keys(departmentsData).map(key => (
+            {filteredDeptKeys.map(key => (
               <button 
                 key={key}
                 className={`dept-btn ${activeDept === key ? 'active' : ''}`}
@@ -487,49 +530,66 @@ const DepartmentsPage = () => {
                 {departmentsData[key].title.replace(' Department', '')}
               </button>
             ))}
+            {filteredDeptKeys.length === 0 && (
+              <div className="dept-no-match-sidebar">No departments match.</div>
+            )}
           </div>
         </aside>
 
         {/* RIGHT SIDE */}
         <div className="department-content">
-          <div className="dept-panel active">
-            <div className="dept-top">
-              <div className="dept-text">
-                <h2>{currentDept.title}</h2>
-                <p>{currentDept.description}</p>
-                {currentDept.extra && <p>{currentDept.extra}</p>}
-                <ul className="dept-points">
-                  {currentDept.points.map((point, i) => (
-                    <li key={i}>{point}</li>
-                  ))}
-                </ul>
+          {filteredDeptKeys.length > 0 && currentDept ? (
+            <div className="dept-panel active">
+              <div className="dept-top">
+                <div className="dept-text">
+                  <h2>{currentDept.title}</h2>
+                  <p>{currentDept.description}</p>
+                  {currentDept.extra && <p>{currentDept.extra}</p>}
+                  <ul className="dept-points">
+                    {currentDept.points.map((point, i) => (
+                      <li key={i}>{point}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="dept-images">
+                  <img src={currentDept.image} alt={currentDept.title} />
+                </div>
               </div>
-              <div className="dept-images">
-                <img src={currentDept.image} alt={currentDept.title} />
-              </div>
-            </div>
 
-            <div className="dept-doctors">
-              <h3>Available Doctors</h3>
-              <div className="doctor-grid">
-                {currentDept.doctors.map((doc, i) => (
-                  <div className="doctor-card" key={i}>
-                    <img src={doc.img} alt={doc.name} />
-                    <h4>{doc.name}</h4>
-                    <span>{doc.qual}</span>
-                    <a 
-                      className="book-btn" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      href={doc.waLink}
-                    >
-                      Book Appointment
-                    </a>
-                  </div>
-                ))}
+              <div className="dept-doctors">
+                <h3>Available Doctors</h3>
+                <div className="doctor-grid">
+                  {currentDept.doctors.map((doc, i) => (
+                    <div className="doctor-card" key={i}>
+                      <img src={doc.img} alt={doc.name} />
+                      <h4>{doc.name}</h4>
+                      <span>{doc.qual}</span>
+                      <a 
+                        className="book-btn" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        href={doc.waLink}
+                      >
+                        Book Appointment
+                      </a>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="dept-no-results-panel">
+              <Info className="no-results-icon" />
+              <h3>No Departments Found</h3>
+              <p>We couldn't find any departments or doctors matching "{searchTerm}". Please try a different search query.</p>
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="dept-reset-btn"
+              >
+                Clear Search
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </section>
