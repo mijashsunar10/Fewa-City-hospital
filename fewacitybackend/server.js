@@ -3,7 +3,9 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import morgan from 'morgan';
 import connectDB from './config/db.js';
+import path from 'path';
 import authRoutes from './routes/authRoutes.js';
+import doctorRoutes from './routes/doctorRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -12,6 +14,9 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
+// Serve static uploaded files
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Middlewares
 app.use(cors());
@@ -25,6 +30,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/doctors', doctorRoutes);
 
 // Basic Route
 app.get('/', (req, res) => {

@@ -51,7 +51,7 @@ const AdminDashboard = () => {
             <Activity className="menu-icon" />
             Dashboard
           </a>
-          <a href="/doctors" className="menu-item">
+          <a href="/admin/doctors" className="menu-item">
             <Users className="menu-icon" />
             Doctors List
           </a>
@@ -119,7 +119,7 @@ const AdminDashboard = () => {
             <h2>Administrative Quick Actions</h2>
             <p className="actions-subtitle">Easily manage clinical records and listings on the main website.</p>
             <div className="actions-buttons-grid">
-              <button onClick={() => navigate('/doctors')} className="action-btn">
+              <button onClick={() => navigate('/admin/doctors')} className="action-btn">
                 <Users className="btn-icon" />
                 <span>Manage Doctors</span>
               </button>

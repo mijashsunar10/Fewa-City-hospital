@@ -1,36 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar } from 'lucide-react';
+import axios from 'axios';
 import './DoctorsSection.css';
 
-const featuredDoctors = [
-  {
-    name: "Dr. Bhoj Raj Neupane",
-    position: "MBBS, MS - General Surgeon",
-    img: "https://fch.com.np/wp-content/uploads/2026/04/Untitled-design-30.png",
-    waLink: "https://wa.me/9779765940555?text=Hello%2C%20I%20would%20like%20to%20book%20an%20appointment%20with%20Dr.%20Bhoj%20Raj%20Neupane%20(General%20Surgeon)%20at%20Fewa%20City%20Hospital."
-  },
-  {
-    name: "Dr. Chandika Pandit",
-    position: "MBBS, MS, DCH - Gynecologist",
-    img: "https://fch.com.np/wp-content/uploads/2026/05/DSC03160.jpg",
-    waLink: "https://wa.me/9779765940555?text=Hello%2C%20I%20would%20like%20to%20book%20an%20appointment%20with%20Dr.%20Chandika%20Pandit%20(Gynecologist)%20at%20Fewa%20City%20Hospital."
-  },
-  {
-    name: "Dr. Suresh Thapa",
-    position: "MBBS, MD, DM - Gastroenterologist",
-    img: "https://fch.com.np/wp-content/uploads/2026/04/Untitled-design-26.png",
-    waLink: "https://wa.me/9779765940555?text=Hello%2C%20I%20would%20like%20to%20book%20an%20appointment%20with%20Dr.%20Suresh%20Thapa%20(Gastroenterologist)%20at%20Fewa%20City%20Hospital."
-  },
-  {
-    name: "Dr. Rohini Sigdel",
-    position: "MBBS, MS - Anesthetist",
-    img: "https://fch.com.np/wp-content/uploads/2026/02/RohinSigdel.jpg",
-    waLink: "https://wa.me/9779765940555?text=Hello%2C%20I%20would%20like%20to%20book%20an%20appointment%20with%20Dr.%20Rohini%20Sigdel%20(Anesthetist)%20at%20Fewa%20City%20Hospital."
-  }
-];
-
 const DoctorsSection = () => {
+  const [featuredDoctors, setFeaturedDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get('http://localhost:5000/api/doctors');
+        // Sort/filter to display first 4 doctors
+        setFeaturedDoctors(res.data.slice(0, 4));
+      } catch (err) {
+        console.error('Failed to load featured doctors:', err);
+        setFeaturedDoctors([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFeatured();
+  }, []);
+
   return (
     <section className="home-doctors-section">
       <div className="container">
@@ -41,30 +35,48 @@ const DoctorsSection = () => {
         </div>
 
         {/* TEAM GRID */}
-        <div className="home-doctors-grid">
-          {featuredDoctors.map((doc, idx) => (
-            <div className="home-doctor-card" key={idx}>
-              <div className="home-doctor-img-wrapper">
-                <img src={doc.img} alt={doc.name} />
-              </div>
-              <div className="home-doctor-info">
-                <h3>{doc.name}</h3>
-                <span className="position">{doc.position}</span>
-                <div className="home-doctor-actions">
-                  <a 
-                    href={doc.waLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="home-doctor-book-btn"
-                  >
-                    <Calendar className="btn-icon" />
-                    Book Appointment
-                  </a>
+        {!loading && (
+          <div className="home-doctors-grid">
+            {featuredDoctors.map((doc, idx) => {
+              const docImg = doc.image 
+                ? (doc.image.startsWith('/uploads/') ? `http://localhost:5000${doc.image}` : doc.image)
+                : doc.img;
+              const docPosition = doc.qualification || doc.position;
+              const phone = doc.phone || '9765940555';
+              const waLink = `https://wa.me/977${phone}?text=${encodeURIComponent(`Hello, I would like to book an appointment with ${doc.name} (${docPosition}) at Fewa City Hospital.`)}`;
+
+              return (
+                <div className="home-doctor-card" key={doc._id || idx}>
+                  <div className="home-doctor-img-wrapper">
+                    <img 
+                      src={docImg} 
+                      alt={doc.name} 
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "https://fch.com.np/wp-content/uploads/2026/03/docotorlast.jpg";
+                      }}
+                    />
+                  </div>
+                  <div className="home-doctor-info">
+                    <h3>{doc.name}</h3>
+                    <span className="position">{docPosition}</span>
+                    <div className="home-doctor-actions">
+                      <a 
+                        href={waLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="home-doctor-book-btn"
+                      >
+                        <Calendar className="btn-icon" />
+                        Book Appointment
+                      </a>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* VIEW ALL TEAM BUTTON */}
         <div className="view-all-doctors-btn-wrap">

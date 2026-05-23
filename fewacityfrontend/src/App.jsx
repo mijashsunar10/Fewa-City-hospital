@@ -11,6 +11,7 @@ import ContactUs from './pages/contact/ContactUs'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminRegister from './pages/admin/AdminRegister'
 import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminDoctors from './pages/admin/AdminDoctors'
 import { AuthProvider } from './context/AuthContext'
 import EmergencyContact from './components/EmergencyContact'
 
@@ -37,6 +38,7 @@ function AppContent() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/register" element={<AdminRegister />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/doctors" element={<AdminDoctors />} />
         </Routes>
       </main>
 
