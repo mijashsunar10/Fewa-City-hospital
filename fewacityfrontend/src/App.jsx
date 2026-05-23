@@ -4,6 +4,7 @@ import Footer from './components/Footer'
 import Home from './pages/Home'
 import About from './pages/about/About'
 import DepartmentsPage from './pages/departments/DepartmentsPage'
+import DoctorsPage from './pages/doctors/DoctorsPage'
 import EmergencyContact from './components/EmergencyContact'
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/about-us/" element={<About />} />
             <Route path="/departments" element={<DepartmentsPage />} />
+            <Route path="/doctors" element={<DoctorsPage />} />
           </Routes>
         </main>
 
