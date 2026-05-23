@@ -6,6 +6,7 @@ import connectDB from './config/db.js';
 import path from 'path';
 import authRoutes from './routes/authRoutes.js';
 import doctorRoutes from './routes/doctorRoutes.js';
+import serviceRoutes from './routes/serviceRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -31,6 +32,7 @@ if (process.env.NODE_ENV === 'development') {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
+app.use('/api/services', serviceRoutes);
 
 // Basic Route
 app.get('/', (req, res) => {

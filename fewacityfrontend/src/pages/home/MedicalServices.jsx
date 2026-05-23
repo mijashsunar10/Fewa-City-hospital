@@ -1,50 +1,57 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import './MedicalServices.css';
-import labImg from '../../assets/services/lab.png';
-import xrayImg from '../../assets/services/xray.png';
-import pharmacyImg from '../../assets/services/medical.png';
-import icuImg from '../../assets/services/icu.png'; 
 
 const MedicalServices = () => {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/services');
+        // Get the first 4 services for homepage display
+        setServices(response.data.slice(0, 4));
+      } catch (error) {
+        console.error('Error fetching homepage services:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
   return (
     <section className="features-outer" id="services-section">
       <div className="features-inner">
         <h2>Our Medical Services</h2>
 
-        <div className="features-grid">
-          <div className="feature-card">
-            <div className="icon">
-              <img src={labImg} alt="Laboratory" />
-            </div>
-            <h3>Laboratory</h3>
-            <p>Advanced laboratories for accurate medical testing and analysis. Supporting reliable diagnosis and patient care.</p>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b' }}>
+            <p>Loading medical services...</p>
           </div>
-
-          <div className="feature-card">
-            <div className="icon">
-              <img src={xrayImg} alt="X-Ray" />
-            </div>
-            <h3>X-Ray</h3>
-            <p>Digital X-ray imaging for fast and precise diagnosis. Ensures safety with minimal radiation exposure.</p>
+        ) : (
+          <div className="features-grid">
+            {services.map((service) => (
+              <div key={service._id} className="feature-card">
+                <div className="icon">
+                  <img 
+                    src={service.image.startsWith('/uploads/') ? `http://localhost:5000${service.image}` : service.image} 
+                    alt={service.title}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "https://fch.com.np/wp-content/uploads/2026/02/lab.jpg";
+                    }}
+                  />
+                </div>
+                <h3>{service.title}</h3>
+                <p>{service.desc}</p>
+              </div>
+            ))}
           </div>
-
-          <div className="feature-card">
-            <div className="icon">
-              <img src={pharmacyImg} alt="Pharmacy" />
-            </div>
-            <h3>Pharmacy</h3>
-            <p>Well-organized pharmacy with essential medicines available. Ensuring safe usage and proper guidance.</p>
-          </div>
-
-          <div className="feature-card">
-            <div className="icon">
-              <img src={icuImg} alt="ICU" />
-            </div>
-            <h3>ICU</h3>
-            <p>Advanced intensive care with continuous patient monitoring. Managed by skilled critical care professionals.</p>
-          </div>
-        </div>
+        )}
 
         <div className="services-btn-wrap">
           <Link to="/services" className="view-all-btn">View All Services</Link>

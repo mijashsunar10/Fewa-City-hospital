@@ -3,48 +3,32 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Plus, Edit, Trash2, Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Upload, FileText, Image as ImageIcon, Search } from 'lucide-react';
 import axios from 'axios';
-import './AdminDoctors.css';
+import './AdminServices.css';
 
-const DEPARTMENTS = [
-  "Internal Medicine",
-  "Surgery",
-  "Gynecology",
-  "Gastroenterology",
-  "Anesthesia",
-  "Orthopedics",
-  "Pediatrics",
-  "Urology",
-  "Radiology",
-  "ENT",
-  "Psychiatry",
-  "Ophthalmology",
-  "Dermatology",
-  "Neurosurgery",
-  "Cardiology",
-  "Physiotherapy",
-  "Dental",
-  "Nephrology",
-  "Oncology"
+const CATEGORIES = [
+  "Diagnostics",
+  "Critical Care",
+  "Specialized Treatment",
+  "General"
 ];
 
-const AdminDoctors = () => {
+const AdminServices = () => {
   const { user, token, logout, loading } = useAuth();
   const navigate = useNavigate();
-  const [doctors, setDoctors] = useState([]);
+  const [services, setServices] = useState([]);
   const [listLoading, setListLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Form Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
-  const [selectedDoctorId, setSelectedDoctorId] = useState(null);
+  const [selectedServiceId, setSelectedServiceId] = useState(null);
 
   // Form Fields
   const [formData, setFormData] = useState({
-    name: '',
-    qualification: '',
-    department: DEPARTMENTS[0],
-    phone: '9765940555',
+    title: '',
+    category: CATEGORIES[0],
+    desc: '',
     imageType: 'url', // 'url' or 'upload'
     imageUrl: '',
   });
@@ -63,14 +47,14 @@ const AdminDoctors = () => {
     }
   }, [user, loading, navigate]);
 
-  // Fetch doctors list
-  const fetchDoctors = async () => {
+  // Fetch services list
+  const fetchServices = async () => {
     try {
       setListLoading(true);
-      const response = await axios.get('http://localhost:5000/api/doctors');
-      setDoctors(response.data);
+      const response = await axios.get('http://localhost:5000/api/services');
+      setServices(response.data);
     } catch (err) {
-      setActionError(err.response?.data?.message || 'Failed to fetch doctors list');
+      setActionError(err.response?.data?.message || 'Failed to fetch services list');
     } finally {
       setListLoading(false);
     }
@@ -78,7 +62,7 @@ const AdminDoctors = () => {
 
   useEffect(() => {
     if (user && user.role === 'admin') {
-      fetchDoctors();
+      fetchServices();
     }
   }, [user]);
 
@@ -87,14 +71,13 @@ const AdminDoctors = () => {
     navigate('/admin/login');
   };
 
-  // Open modal for creating a doctor
+  // Open modal for creating a service
   const openCreateModal = () => {
     setModalMode('create');
     setFormData({
-      name: '',
-      qualification: '',
-      department: DEPARTMENTS[0],
-      phone: '9765940555',
+      title: '',
+      category: CATEGORIES[0],
+      desc: '',
       imageType: 'url',
       imageUrl: '',
     });
@@ -105,22 +88,21 @@ const AdminDoctors = () => {
     setIsModalOpen(true);
   };
 
-  // Open modal for editing a doctor
-  const openEditModal = (doctor) => {
+  // Open modal for editing a service
+  const openEditModal = (service) => {
     setModalMode('edit');
-    setSelectedDoctorId(doctor._id);
+    setSelectedServiceId(service._id);
     
-    const isLocalUpload = doctor.image.startsWith('/uploads/');
+    const isLocalUpload = service.image.startsWith('/uploads/');
     setFormData({
-      name: doctor.name,
-      qualification: doctor.qualification,
-      department: doctor.department,
-      phone: doctor.phone || '9765940555',
+      title: service.title,
+      category: service.category,
+      desc: service.desc,
       imageType: isLocalUpload ? 'upload' : 'url',
-      imageUrl: isLocalUpload ? '' : doctor.image,
+      imageUrl: isLocalUpload ? '' : service.image,
     });
     setImageFile(null);
-    setImagePreview(isLocalUpload ? `http://localhost:5000${doctor.image}` : doctor.image);
+    setImagePreview(isLocalUpload ? `http://localhost:5000${service.image}` : service.image);
     setActionError('');
     setActionSuccess('');
     setIsModalOpen(true);
@@ -158,10 +140,9 @@ const AdminDoctors = () => {
     setIsSubmitting(true);
 
     const postData = new FormData();
-    postData.append('name', formData.name);
-    postData.append('qualification', formData.qualification);
-    postData.append('department', formData.department);
-    postData.append('phone', formData.phone);
+    postData.append('title', formData.title);
+    postData.append('category', formData.category);
+    postData.append('desc', formData.desc);
 
     if (formData.imageType === 'upload' && imageFile) {
       postData.append('image', imageFile);
@@ -178,17 +159,17 @@ const AdminDoctors = () => {
       };
 
       if (modalMode === 'create') {
-        await axios.post('http://localhost:5000/api/doctors', postData, config);
-        setActionSuccess('Doctor successfully created!');
+        await axios.post('http://localhost:5000/api/services', postData, config);
+        setActionSuccess('Service successfully created!');
       } else {
-        await axios.put(`http://localhost:5000/api/doctors/${selectedDoctorId}`, postData, config);
-        setActionSuccess('Doctor successfully updated!');
+        await axios.put(`http://localhost:5000/api/services/${selectedServiceId}`, postData, config);
+        setActionSuccess('Service successfully updated!');
       }
 
       // Close modal after a short delay and refresh list
       setTimeout(() => {
         setIsModalOpen(false);
-        fetchDoctors();
+        fetchServices();
       }, 1000);
 
     } catch (err) {
@@ -198,31 +179,31 @@ const AdminDoctors = () => {
     }
   };
 
-  // Handle deleting a doctor
-  const handleDeleteDoctor = async (id, name) => {
-    if (window.confirm(`Are you sure you want to remove Dr. ${name}?`)) {
+  // Handle deleting a service
+  const handleDeleteService = async (id, title) => {
+    if (window.confirm(`Are you sure you want to remove the ${title} service?`)) {
       try {
         const config = {
           headers: {
             Authorization: `Bearer ${token}`
           }
         };
-        await axios.delete(`http://localhost:5000/api/doctors/${id}`, config);
-        setActionSuccess(`Dr. ${name} successfully removed.`);
-        fetchDoctors();
+        await axios.delete(`http://localhost:5000/api/services/${id}`, config);
+        setActionSuccess(`Service "${title}" successfully removed.`);
+        fetchServices();
         setTimeout(() => setActionSuccess(''), 3000);
       } catch (err) {
-        setActionError(err.response?.data?.message || 'Failed to delete doctor.');
+        setActionError(err.response?.data?.message || 'Failed to delete service.');
         setTimeout(() => setActionError(''), 3000);
       }
     }
   };
 
-  // Filtered doctors list based on search term
-  const filteredDoctors = doctors.filter(doc => 
-    doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.qualification.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filtered services list based on search term
+  const filteredServices = services.filter(srv => 
+    srv.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    srv.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    srv.desc.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading || !user) {
@@ -256,17 +237,13 @@ const AdminDoctors = () => {
             <LayoutGrid className="menu-icon" />
             Dashboard
           </a>
-          <a href="/admin/doctors" className="menu-item active">
+          <a href="/admin/doctors" className="menu-item">
             <Users className="menu-icon" />
-            Doctors List
+            Doctors Roster
           </a>
-          <a href="/admin/services" className="menu-item">
+          <a href="/admin/services" className="menu-item active">
             <Briefcase className="menu-icon" />
             Clinical Services
-          </a>
-          <a href="/departments" className="menu-item">
-            <LayoutGrid className="menu-icon" />
-            Departments
           </a>
         </nav>
         <button onClick={handleLogout} className="sidebar-logout-btn">
@@ -283,11 +260,11 @@ const AdminDoctors = () => {
               <ArrowLeft className="back-arrow-icon" />
               Back
             </button>
-            <h1>Manage Specialist Doctors</h1>
+            <h1>Manage Clinical Services</h1>
           </div>
           <button onClick={openCreateModal} className="add-doctor-action-btn">
             <Plus className="btn-icon" />
-            Add New Specialist
+            Add New Service
           </button>
         </header>
 
@@ -301,7 +278,7 @@ const AdminDoctors = () => {
             <Search className="search-box-icon" />
             <input 
               type="text" 
-              placeholder="Search doctors by name, department, or qualification..."
+              placeholder="Search services by title, category, or description..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="doctors-search-bar-input"
@@ -309,54 +286,52 @@ const AdminDoctors = () => {
           </div>
         </div>
 
-        {/* DOCTORS LISTING TABLE */}
+        {/* SERVICES LISTING TABLE */}
         <div className="doctors-table-card">
           {listLoading ? (
             <div className="table-loader-wrapper">
               <div className="spinner"></div>
-              <p>Fetching doctors roster...</p>
+              <p>Fetching services roster...</p>
             </div>
-          ) : filteredDoctors.length === 0 ? (
+          ) : filteredServices.length === 0 ? (
             <div className="empty-doctors-state">
-              <Users className="empty-icon" />
-              <h3>No Specialists Found</h3>
-              <p>Try refining your search terms or add a new doctor record.</p>
+              <Briefcase className="empty-icon" />
+              <h3>No Services Found</h3>
+              <p>Try refining your search terms or add a new service record.</p>
             </div>
           ) : (
             <table className="doctors-crud-table">
               <thead>
                 <tr>
                   <th>Image</th>
-                  <th>Name</th>
-                  <th>Department</th>
-                  <th>Qualification</th>
-                  <th>WhatsApp</th>
+                  <th>Service Title</th>
+                  <th>Category</th>
+                  <th>Description Preview</th>
                   <th className="actions-header">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredDoctors.map((doc) => (
-                  <tr key={doc._id}>
+                {filteredServices.map((srv) => (
+                  <tr key={srv._id}>
                     <td>
                       <img 
-                        src={doc.image.startsWith('/uploads/') ? `http://localhost:5000${doc.image}` : doc.image} 
-                        alt={doc.name} 
+                        src={srv.image.startsWith('/uploads/') ? `http://localhost:5000${srv.image}` : srv.image} 
+                        alt={srv.title} 
                         className="doctor-table-img-thumb"
                         onError={(e) => {
                           e.target.onerror = null;
-                          e.target.src = "https://fch.com.np/wp-content/uploads/2026/03/docotorlast.jpg";
+                          e.target.src = "https://fch.com.np/wp-content/uploads/2026/02/lab.jpg";
                         }}
                       />
                     </td>
-                    <td className="doctor-table-name">{doc.name}</td>
-                    <td><span className="doctor-table-dept-badge">{doc.department}</span></td>
-                    <td className="doctor-table-qual">{doc.qualification}</td>
-                    <td className="doctor-table-phone">{doc.phone}</td>
+                    <td className="doctor-table-name">{srv.title}</td>
+                    <td><span className="doctor-table-dept-badge">{srv.category}</span></td>
+                    <td className="doctor-table-qual" title={srv.desc}>{srv.desc}</td>
                     <td className="doctor-table-actions">
-                      <button onClick={() => openEditModal(doc)} className="action-icon-btn edit-color" title="Edit Roster">
+                      <button onClick={() => openEditModal(srv)} className="action-icon-btn edit-color" title="Edit Service">
                         <Edit className="action-icon" />
                       </button>
-                      <button onClick={() => handleDeleteDoctor(doc._id, doc.name)} className="action-icon-btn delete-color" title="Remove Roster">
+                      <button onClick={() => handleDeleteService(srv._id, srv.title)} className="action-icon-btn delete-color" title="Remove Service">
                         <Trash2 className="action-icon" />
                       </button>
                     </td>
@@ -373,7 +348,7 @@ const AdminDoctors = () => {
         <div className="modal-overlay">
           <div className="modal-card">
             <div className="modal-header">
-              <h2>{modalMode === 'create' ? 'Add New Doctor' : 'Edit Doctor Details'}</h2>
+              <h2>{modalMode === 'create' ? 'Add New Clinical Service' : 'Edit Service Details'}</h2>
               <button onClick={() => setIsModalOpen(false)} className="close-modal-btn">&times;</button>
             </div>
             
@@ -383,59 +358,57 @@ const AdminDoctors = () => {
 
               <div className="form-group-grid">
                 <div className="form-field-wrapper">
-                  <label>Full Name</label>
+                  <label>Service Title</label>
                   <input 
                     type="text" 
-                    name="name" 
-                    value={formData.name} 
+                    name="title" 
+                    value={formData.title} 
                     onChange={handleInputChange} 
                     required 
-                    placeholder="e.g. Dr. Bhoj Raj Neupane"
+                    placeholder="e.g. Video Colonoscopy"
                   />
                 </div>
                 
                 <div className="form-field-wrapper">
-                  <label>WhatsApp Booking Number</label>
-                  <input 
-                    type="text" 
-                    name="phone" 
-                    value={formData.phone} 
-                    onChange={handleInputChange} 
-                    required 
-                    placeholder="e.g. 9765940555"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group-grid">
-                <div className="form-field-wrapper">
-                  <label>Specialization / Department</label>
+                  <label>Category</label>
                   <select 
-                    name="department" 
-                    value={formData.department} 
+                    name="category" 
+                    value={formData.category} 
                     onChange={handleInputChange}
                   >
-                    {DEPARTMENTS.map(dept => (
-                      <option key={dept} value={dept}>{dept}</option>
+                    {CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
                 </div>
+              </div>
 
-                <div className="form-field-wrapper">
-                  <label>Qualifications & Degrees</label>
-                  <input 
-                    type="text" 
-                    name="qualification" 
-                    value={formData.qualification} 
-                    onChange={handleInputChange} 
-                    required 
-                    placeholder="e.g. MBBS, MS - General Surgeon"
-                  />
-                </div>
+              <div className="form-field-wrapper" style={{ marginBottom: '20px' }}>
+                <label>Description</label>
+                <textarea 
+                  name="desc" 
+                  value={formData.desc} 
+                  onChange={handleInputChange} 
+                  required 
+                  placeholder="Detail the scope of this medical service..."
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '14px',
+                    backgroundColor: '#f8fafc',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                    color: '#1e293b',
+                    height: '100px',
+                    resize: 'vertical'
+                  }}
+                />
               </div>
 
               <div className="image-type-selector-wrapper">
-                <label>Doctor Profile Image</label>
+                <label>Service Display Image</label>
                 <div className="type-toggle-buttons">
                   <button 
                     type="button" 
@@ -468,12 +441,12 @@ const AdminDoctors = () => {
                   <div className="file-upload-drag-area">
                     <input 
                       type="file" 
-                      id="doctor-file-uploader" 
+                      id="service-file-uploader" 
                       accept="image/*" 
                       onChange={handleFileChange}
                       required={formData.imageType === 'upload' && !imagePreview}
                     />
-                    <label htmlFor="doctor-file-uploader" className="file-uploader-label">
+                    <label htmlFor="service-file-uploader" className="file-uploader-label">
                       <Upload className="drag-upload-icon" />
                       <span>{imageFile ? imageFile.name : 'Select or drop image file here'}</span>
                     </label>
@@ -493,7 +466,7 @@ const AdminDoctors = () => {
                   Cancel
                 </button>
                 <button type="submit" disabled={isSubmitting} className="modal-submit-btn">
-                  {isSubmitting ? 'Saving record...' : 'Save Doctor'}
+                  {isSubmitting ? 'Saving record...' : 'Save Service'}
                 </button>
               </div>
             </form>
@@ -504,4 +477,4 @@ const AdminDoctors = () => {
   );
 };
 
-export default AdminDoctors;
+export default AdminServices;
