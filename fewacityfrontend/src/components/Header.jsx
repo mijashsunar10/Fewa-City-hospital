@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -95,6 +97,22 @@ const Header = () => {
           <NavLink to="/college-program">College Programme</NavLink>
           <NavLink to="/gallery">Gallery</NavLink>
           <NavLink to="/contact-us/">Contact Us</NavLink>
+          
+          {/* AUTHENTICATION PATHS */}
+          {user ? (
+            <NavLink to="/admin/dashboard">
+              <span className="flex items-center gap-1.5 text-[#facc15] font-bold">
+                <i className="fa-solid fa-circle-user text-lg"></i>
+                Admin: {user.name.split(' ')[0]}
+              </span>
+            </NavLink>
+          ) : (
+            <>
+              <span className="hidden md:inline text-white/20">|</span>
+              <NavLink to="/admin/login">Login</NavLink>
+              <NavLink to="/admin/register">Register</NavLink>
+            </>
+          )}
         </ul>
       </nav>
     </header>
