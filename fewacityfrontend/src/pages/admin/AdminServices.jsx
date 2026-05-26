@@ -246,6 +246,10 @@ const AdminServices = () => {
             <Briefcase className="menu-icon" />
             Clinical Services
           </a>
+          <a href="/admin/departments" className="menu-item">
+            <LayoutGrid className="menu-icon" />
+            Departments
+          </a>
         </nav>
         <button onClick={handleLogout} className="sidebar-logout-btn">
           <LogOut className="menu-icon" />

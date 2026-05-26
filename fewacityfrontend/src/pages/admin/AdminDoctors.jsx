@@ -32,8 +32,11 @@ const AdminDoctors = () => {
   const { user, token, logout, loading } = useAuth();
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
+  const [departmentsList, setDepartmentsList] = useState([]);
   const [listLoading, setListLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const displayDepartments = departmentsList.length > 0 ? departmentsList : DEPARTMENTS;
 
   // Form Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,7 +47,7 @@ const AdminDoctors = () => {
   const [formData, setFormData] = useState({
     name: '',
     qualification: '',
-    department: DEPARTMENTS[0],
+    department: '',
     phone: '9765940555',
     imageType: 'url', // 'url' or 'upload'
     imageUrl: '',
@@ -83,6 +86,26 @@ const AdminDoctors = () => {
     }
   }, [user]);
 
+  // Fetch departments list for select dropdown
+  useEffect(() => {
+    const fetchDepts = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/departments');
+        const names = response.data.map(d => d.title.replace(' Department', ''));
+        setDepartmentsList(names);
+        if (names.length > 0) {
+          setFormData(prev => ({ 
+            ...prev, 
+            department: prev.department || names[0] 
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to load departments for doctor selection:', err);
+      }
+    };
+    fetchDepts();
+  }, []);
+
   const handleLogout = () => {
     logout();
     navigate('/admin/login');
@@ -94,7 +117,7 @@ const AdminDoctors = () => {
     setFormData({
       name: '',
       qualification: '',
-      department: DEPARTMENTS[0],
+      department: displayDepartments[0] || DEPARTMENTS[0],
       phone: '9765940555',
       imageType: 'url',
       imageUrl: '',
@@ -265,7 +288,7 @@ const AdminDoctors = () => {
             <Briefcase className="menu-icon" />
             Clinical Services
           </a>
-          <a href="/departments" className="menu-item">
+          <a href="/admin/departments" className="menu-item">
             <LayoutGrid className="menu-icon" />
             Departments
           </a>
@@ -416,7 +439,7 @@ const AdminDoctors = () => {
                     value={formData.department} 
                     onChange={handleInputChange}
                   >
-                    {DEPARTMENTS.map(dept => (
+                    {displayDepartments.map(dept => (
                       <option key={dept} value={dept}>{dept}</option>
                     ))}
                   </select>

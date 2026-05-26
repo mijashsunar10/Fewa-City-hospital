@@ -1,27 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import './Departments.css';
 
 const Departments = () => {
-  const departments = [
-    { name: 'Anesthesia', link: '/departments#anesthesia' },
-    { name: 'Cardiology', link: '/departments#cardiology' },
-    { name: 'Dental', link: '/departments#dental' },
-    { name: 'Dermatology', link: '/departments#dermatology' },
-    { name: 'ENT', link: '/departments#ent' },
-    { name: 'Gastrology', link: '/departments#gastro' },
-    { name: 'General Surgery', link: '/departments#surgery' },
-    { name: 'Gynecology', link: '/departments#gynecology' },
-    { name: 'Internal Medicine', link: '/departments#medicine' },
-    { name: 'Neurosurgery', link: '/departments#neuro' },
-    { name: 'Orthopedic', link: '/departments#orthopedic' },
-    { name: 'Pediatric', link: '/departments#peadiatric' },
-    { name: 'Urology', link: '/departments#urology' },
-    { name: 'Radiology', link: '/departments#radiology' },
-    { name: 'Psychiatric', link: '/departments#psychiatric' },
-    { name: 'Opthalmology', link: '/departments#opthalmology' },
-    { name: 'Nephorology', link: '/departments#nephrology' },
-  ];
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDepts = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('http://localhost:5000/api/departments');
+        setDepartments(response.data);
+      } catch (err) {
+        console.error('Failed to fetch departments for homepage:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDepts();
+  }, []);
 
   return (
     <section className="departments-section">
@@ -34,11 +33,21 @@ const Departments = () => {
 
         {/* Departments Grid */}
         <div className="departments-grid">
-          {departments.map((dept, index) => (
-            <Link key={index} to={dept.link}>
-              <div className="department-card">{dept.name}</div>
-            </Link>
-          ))}
+          {loading ? (
+            <div className="col-span-full text-center py-6 text-slate-500 font-medium">
+              Loading departments...
+            </div>
+          ) : departments.length > 0 ? (
+            departments.map((dept) => (
+              <Link key={dept._id} to={`/departments#${dept.slug}`}>
+                <div className="department-card">{dept.title.replace(' Department', '')}</div>
+              </Link>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-6 text-slate-500 font-medium">
+              No departments registered.
+            </div>
+          )}
         </div>
 
         <div className="services-btn-wrap">

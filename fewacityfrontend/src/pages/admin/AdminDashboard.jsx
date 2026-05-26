@@ -59,7 +59,7 @@ const AdminDashboard = () => {
             <Briefcase className="menu-icon" />
             Clinical Services
           </a>
-          <a href="/departments" className="menu-item">
+          <a href="/admin/departments" className="menu-item">
             <LayoutGrid className="menu-icon" />
             Departments
           </a>
@@ -127,7 +127,7 @@ const AdminDashboard = () => {
                 <Briefcase className="btn-icon" />
                 <span>Manage Services</span>
               </button>
-              <button onClick={() => navigate('/departments')} className="action-btn">
+              <button onClick={() => navigate('/admin/departments')} className="action-btn">
                 <LayoutGrid className="btn-icon" />
                 <span>Manage Departments</span>
               </button>

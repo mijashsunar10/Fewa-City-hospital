@@ -28,25 +28,33 @@ const departments = [
 
 const DoctorsPage = () => {
   const [doctors, setDoctors] = useState([]);
+  const [departmentsList, setDepartmentsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('All');
 
+  const displayDepartments = departmentsList.length > 0 ? departmentsList : departments;
+
   useEffect(() => {
     window.scrollTo(0, 0);
-    const fetchDoctors = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await axios.get('http://localhost:5000/api/doctors');
-        setDoctors(res.data);
+        const [docRes, deptRes] = await Promise.all([
+          axios.get('http://localhost:5000/api/doctors'),
+          axios.get('http://localhost:5000/api/departments')
+        ]);
+        setDoctors(docRes.data);
+        const names = deptRes.data.map(d => d.title.replace(' Department', ''));
+        setDepartmentsList(["All", ...names]);
       } catch (err) {
-        console.error('Failed to load live doctors list:', err);
+        console.error('Failed to load live doctors or departments list:', err);
         setDoctors([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchDoctors();
+    fetchData();
   }, []);
 
   const filteredDoctors = useMemo(() => {
@@ -125,7 +133,7 @@ const DoctorsPage = () => {
 
           <div className="doctors-filter-label">Filter by Specialization:</div>
           <div className="doctors-filters-scroll">
-            {departments.map((dept) => (
+            {displayDepartments.map((dept) => (
               <button
                 key={dept}
                 onClick={() => setSelectedDept(dept)}
