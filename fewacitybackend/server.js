@@ -8,6 +8,7 @@ import authRoutes from './routes/authRoutes.js';
 import doctorRoutes from './routes/doctorRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import departmentRoutes from './routes/departmentRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -35,6 +36,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/departments', departmentRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Basic Route
 app.get('/', (req, res) => {

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Phone, Mail, MapPin, Building, Send, Award, Shield, CheckCircle } from 'lucide-react';
+import axios from 'axios';
 import './ContactUs.css';
 
 const ContactUs = () => {
@@ -11,6 +12,8 @@ const ContactUs = () => {
     message: ''
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -21,10 +24,12 @@ const ContactUs = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate API request
-    setTimeout(() => {
+    setIsSubmitting(true);
+    setSubmitError('');
+    try {
+      await axios.post('http://localhost:5000/api/messages', formData);
       setIsSubmitted(true);
       setFormData({
         name: '',
@@ -33,7 +38,11 @@ const ContactUs = () => {
         subject: '',
         message: ''
       });
-    }, 800);
+    } catch (err) {
+      setSubmitError(err.response?.data?.message || 'Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -140,6 +149,21 @@ const ContactUs = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="contact-form-inner">
+              {submitError && (
+                <div style={{
+                  color: '#ef4444',
+                  backgroundColor: '#fee2e2',
+                  padding: '12px',
+                  borderRadius: '10px',
+                  marginBottom: '20px',
+                  fontSize: '14px',
+                  textAlign: 'center',
+                  fontWeight: '500',
+                  border: '1px solid #fca5a5'
+                }}>
+                  {submitError}
+                </div>
+              )}
               <div className="form-grid">
                 <div className="form-group">
                   <label htmlFor="name">Your Name *</label>
@@ -206,9 +230,9 @@ const ContactUs = () => {
                 ></textarea>
               </div>
 
-              <button type="submit" className="contact-submit-btn">
+              <button type="submit" disabled={isSubmitting} className="contact-submit-btn">
                 <Send className="btn-icon" />
-                Submit Message
+                {isSubmitting ? 'Submitting Message...' : 'Submit Message'}
               </button>
             </form>
           )}

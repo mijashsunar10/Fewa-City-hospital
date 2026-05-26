@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Plus, Edit, Trash2, Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Upload, FileText, Image as ImageIcon, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Upload, FileText, Image as ImageIcon, Search, Mail } from 'lucide-react';
 import axios from 'axios';
 import './AdminDashboard.css';
 import './AdminDoctors.css';
@@ -291,6 +291,10 @@ const AdminDoctors = () => {
           <a href="/admin/departments" className="menu-item">
             <LayoutGrid className="menu-icon" />
             Departments
+          </a>
+          <a href="/admin/messages" className="menu-item">
+            <Mail className="menu-icon" />
+            Patient Messages
           </a>
         </nav>
         <button onClick={handleLogout} className="sidebar-logout-btn">

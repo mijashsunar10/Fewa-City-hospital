@@ -1,12 +1,20 @@
-import React, { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, Shield, Users, Briefcase, LayoutGrid, Settings, Activity, Calendar } from 'lucide-react';
+import { LogOut, Shield, Users, Briefcase, LayoutGrid, Activity, Calendar, Mail } from 'lucide-react';
+import axios from 'axios';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
-  const { user, logout, loading } = useAuth();
+  const { user, token, logout, loading } = useAuth();
   const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    doctors: 0,
+    services: 0,
+    departments: 0,
+    messages: 0,
+    unreadMessages: 0
+  });
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -14,6 +22,41 @@ const AdminDashboard = () => {
       navigate('/admin/login');
     }
   }, [user, loading, navigate]);
+
+  // Fetch stats from API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        };
+        const [docsRes, srvsRes, deptsRes, msgsRes] = await Promise.all([
+          axios.get('http://localhost:5000/api/doctors'),
+          axios.get('http://localhost:5000/api/services'),
+          axios.get('http://localhost:5000/api/departments'),
+          axios.get('http://localhost:5000/api/messages', config)
+        ]);
+        
+        const unread = msgsRes.data.filter(m => !m.isRead).length;
+
+        setStats({
+          doctors: docsRes.data.length,
+          services: srvsRes.data.length,
+          departments: deptsRes.data.length,
+          messages: msgsRes.data.length,
+          unreadMessages: unread
+        });
+      } catch (err) {
+        console.error('Failed to load dashboard stats:', err);
+      }
+    };
+
+    if (user && user.role === 'admin') {
+      fetchStats();
+    }
+  }, [user, token]);
 
   const handleLogout = () => {
     logout();
@@ -47,7 +90,7 @@ const AdminDashboard = () => {
           </div>
         </div>
         <nav className="sidebar-menu">
-          <a href="#dashboard" className="menu-item active">
+          <a href="/admin/dashboard" className="menu-item active">
             <Activity className="menu-icon" />
             Dashboard
           </a>
@@ -62,6 +105,23 @@ const AdminDashboard = () => {
           <a href="/admin/departments" className="menu-item">
             <LayoutGrid className="menu-icon" />
             Departments
+          </a>
+          <a href="/admin/messages" className="menu-item">
+            <Mail className="menu-icon" />
+            Patient Messages
+            {stats.unreadMessages > 0 && (
+              <span style={{
+                marginLeft: 'auto',
+                backgroundColor: '#ef4444',
+                color: '#ffffff',
+                fontSize: '11px',
+                fontWeight: 'bold',
+                padding: '2px 6px',
+                borderRadius: '8px'
+              }}>
+                {stats.unreadMessages}
+              </span>
+            )}
           </a>
         </nav>
         <button onClick={handleLogout} className="sidebar-logout-btn">
@@ -88,7 +148,7 @@ const AdminDashboard = () => {
             </div>
             <div className="stat-info">
               <span className="stat-title">Registered Doctors</span>
-              <h3 className="stat-value">38</h3>
+              <h3 className="stat-value">{stats.doctors}</h3>
             </div>
           </div>
 
@@ -98,7 +158,7 @@ const AdminDashboard = () => {
             </div>
             <div className="stat-info">
               <span className="stat-title">Active Services</span>
-              <h3 className="stat-value">18</h3>
+              <h3 className="stat-value">{stats.services}</h3>
             </div>
           </div>
 
@@ -108,7 +168,21 @@ const AdminDashboard = () => {
             </div>
             <div className="stat-info">
               <span className="stat-title">Specialist Departments</span>
-              <h3 className="stat-value">16</h3>
+              <h3 className="stat-value">{stats.departments}</h3>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-icon-wrapper" style={{ backgroundColor: '#fff7ed', color: '#f97316' }}>
+              <Mail className="stat-icon" />
+            </div>
+            <div className="stat-info">
+              <span className="stat-title">Patient Inquiry Messages</span>
+              <h3 className="stat-value">{stats.messages} {stats.unreadMessages > 0 && (
+                <span style={{ fontSize: '12px', color: '#ef4444', fontWeight: 'bold' }}>
+                  ({stats.unreadMessages} new)
+                </span>
+              )}</h3>
             </div>
           </div>
         </section>
@@ -131,9 +205,9 @@ const AdminDashboard = () => {
                 <LayoutGrid className="btn-icon" />
                 <span>Manage Departments</span>
               </button>
-              <button onClick={() => navigate('/admin/register')} className="action-btn outline-btn">
-                <UserPlusIcon className="btn-icon" />
-                <span>Add Admin Account</span>
+              <button onClick={() => navigate('/admin/messages')} className="action-btn">
+                <Mail className="btn-icon" />
+                <span>Manage Messages</span>
               </button>
             </div>
           </div>
@@ -153,24 +227,5 @@ const AdminDashboard = () => {
     </div>
   );
 };
-
-// Helper for local icon usage
-const UserPlusIcon = ({ className }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <line x1="19" x2="19" y1="8" y2="14" />
-    <line x1="22" x2="16" y1="11" y2="11" />
-  </svg>
-);
 
 export default AdminDashboard;
