@@ -157,6 +157,10 @@ const AdminMessages = () => {
             <LayoutGrid className="menu-icon" />
             Departments
           </a>
+          <a href="/admin/appointments" className="menu-item">
+            <Calendar className="menu-icon" />
+            Appointments
+          </a>
           <a href="/admin/messages" className="menu-item active">
             <Mail className="menu-icon" />
             Patient Messages

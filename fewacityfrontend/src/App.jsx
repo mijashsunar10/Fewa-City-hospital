@@ -15,16 +15,20 @@ import AdminDoctors from './pages/admin/AdminDoctors'
 import AdminServices from './pages/admin/AdminServices'
 import AdminDepartments from './pages/admin/AdminDepartments'
 import AdminMessages from './pages/admin/AdminMessages'
+import AdminAppointments from './pages/admin/AdminAppointments'
+import PatientLogin from './pages/patient/PatientLogin'
+import PatientRegister from './pages/patient/PatientRegister'
+import PatientDashboard from './pages/patient/PatientDashboard'
 import { AuthProvider } from './context/AuthContext'
 import EmergencyContact from './components/EmergencyContact'
 
 function AppContent() {
   const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith('/admin');
+  const hideHeaderFooter = location.pathname.startsWith('/admin') || location.pathname.startsWith('/patient/dashboard');
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      {!isAdminRoute && <Header />}
+      {!hideHeaderFooter && <Header />}
       
       <main className="flex-grow">
         <Routes>
@@ -38,6 +42,9 @@ function AppContent() {
           <Route path="/services/" element={<ServicesPage />} />
           <Route path="/contact-us" element={<ContactUs />} />
           <Route path="/contact-us/" element={<ContactUs />} />
+          <Route path="/login" element={<PatientLogin />} />
+          <Route path="/register" element={<PatientRegister />} />
+          <Route path="/patient/dashboard" element={<PatientDashboard />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/register" element={<AdminRegister />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
@@ -45,11 +52,12 @@ function AppContent() {
           <Route path="/admin/services" element={<AdminServices />} />
           <Route path="/admin/departments" element={<AdminDepartments />} />
           <Route path="/admin/messages" element={<AdminMessages />} />
+          <Route path="/admin/appointments" element={<AdminAppointments />} />
         </Routes>
       </main>
 
-      {!isAdminRoute && <Footer />}
-      {!isAdminRoute && <EmergencyContact />}
+      {!hideHeaderFooter && <Footer />}
+      {!hideHeaderFooter && <EmergencyContact />}
     </div>
   );
 }

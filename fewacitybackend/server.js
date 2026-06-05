@@ -9,6 +9,7 @@ import doctorRoutes from './routes/doctorRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import departmentRoutes from './routes/departmentRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
+import appointmentRoutes from './routes/appointmentRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -37,6 +38,7 @@ app.use('/api/doctors', doctorRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/appointments', appointmentRoutes);
 
 // Basic Route
 app.get('/', (req, res) => {

@@ -51,7 +51,7 @@ const Header = () => {
           </div>
 
           <div className="flex gap-8">
-            <QuickAction icon="fa-calendar-check" text1="Request" text2="Appointment" href="#" />
+            <QuickAction icon="fa-calendar-check" text1="Request" text2="Appointment" href={user ? "/patient/dashboard?tab=book" : "/login"} />
             <QuickAction icon="fa-user-doctor" text1="Doctor" text2="Consultation" href="/departments" />
             <QuickAction icon="fa-ambulance" text1="Ambulance" text2="+977 9842285269" href="tel:+9779842285269" />
             <QuickAction icon="fa-clock" text1="24 / 7" text2="Service" href="/services" />
@@ -100,17 +100,28 @@ const Header = () => {
           
           {/* AUTHENTICATION PATHS */}
           {user ? (
-            <NavLink to="/admin/dashboard">
-              <span className="flex items-center gap-1.5 text-[#facc15] font-bold">
-                <i className="fa-solid fa-circle-user text-lg"></i>
-                Admin: {user.name.split(' ')[0]}
-              </span>
-            </NavLink>
+            user.role === 'admin' ? (
+              <NavLink to="/admin/dashboard">
+                <span className="flex items-center gap-1.5 text-[#facc15] font-bold">
+                  <i className="fa-solid fa-circle-user text-lg"></i>
+                  Admin: {user.name.split(' ')[0]}
+                </span>
+              </NavLink>
+            ) : (
+              <NavLink to="/patient/dashboard">
+                <span className="flex items-center gap-1.5 text-[#facc15] font-bold">
+                  <i className="fa-solid fa-circle-user text-lg"></i>
+                  Dashboard: {user.name.split(' ')[0]}
+                </span>
+              </NavLink>
+            )
           ) : (
             <>
               <span className="hidden md:inline text-white/20">|</span>
-              <NavLink to="/admin/login">Login</NavLink>
-              <NavLink to="/admin/register">Register</NavLink>
+              <NavLink to="/login">Patient Login</NavLink>
+              <NavLink to="/register">Register</NavLink>
+              <span className="hidden md:inline text-white/20">|</span>
+              <NavLink to="/admin/login" className="text-[#facc15] hover:text-[#fbbf24] font-semibold">Admin Portal</NavLink>
             </>
           )}
         </ul>

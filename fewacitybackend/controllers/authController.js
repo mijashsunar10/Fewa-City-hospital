@@ -37,6 +37,12 @@ export const registerUser = async (req, res, next) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        phone: user.phone || '',
+        gender: user.gender || '',
+        dob: user.dob || null,
+        address: user.address || '',
+        bloodGroup: user.bloodGroup || '',
+        medicalHistory: user.medicalHistory || '',
         token: generateToken(user._id),
       });
     } else {
@@ -64,6 +70,12 @@ export const loginUser = async (req, res, next) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        phone: user.phone || '',
+        gender: user.gender || '',
+        dob: user.dob || null,
+        address: user.address || '',
+        bloodGroup: user.bloodGroup || '',
+        medicalHistory: user.medicalHistory || '',
         token: generateToken(user._id),
       });
     } else {
@@ -88,6 +100,58 @@ export const getMe = async (req, res, next) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        phone: user.phone || '',
+        gender: user.gender || '',
+        dob: user.dob || null,
+        address: user.address || '',
+        bloodGroup: user.bloodGroup || '',
+        medicalHistory: user.medicalHistory || '',
+      });
+    } else {
+      res.status(404);
+      return next(new Error('User not found'));
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+export const updateUserProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.email = req.body.email || user.email;
+
+      if (req.body.phone !== undefined) user.phone = req.body.phone;
+      if (req.body.gender !== undefined) user.gender = req.body.gender;
+      if (req.body.dob !== undefined) user.dob = req.body.dob;
+      if (req.body.address !== undefined) user.address = req.body.address;
+      if (req.body.bloodGroup !== undefined) user.bloodGroup = req.body.bloodGroup;
+      if (req.body.medicalHistory !== undefined) user.medicalHistory = req.body.medicalHistory;
+
+      if (req.body.password) {
+        user.password = req.body.password;
+      }
+
+      const updatedUser = await user.save();
+
+      res.json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        phone: updatedUser.phone || '',
+        gender: updatedUser.gender || '',
+        dob: updatedUser.dob || null,
+        address: updatedUser.address || '',
+        bloodGroup: updatedUser.bloodGroup || '',
+        medicalHistory: updatedUser.medicalHistory || '',
+        token: generateToken(updatedUser._id),
       });
     } else {
       res.status(404);

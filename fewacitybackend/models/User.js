@@ -27,6 +27,30 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'admin'],
       default: 'user',
     },
+    phone: {
+      type: String,
+      default: '',
+    },
+    gender: {
+      type: String,
+      enum: ['', 'Male', 'Female', 'Other'],
+      default: '',
+    },
+    dob: {
+      type: Date,
+    },
+    address: {
+      type: String,
+      default: '',
+    },
+    bloodGroup: {
+      type: String,
+      default: '',
+    },
+    medicalHistory: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

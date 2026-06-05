@@ -32,21 +32,25 @@ const AdminDashboard = () => {
             Authorization: `Bearer ${token}`
           }
         };
-        const [docsRes, srvsRes, deptsRes, msgsRes] = await Promise.all([
+        const [docsRes, srvsRes, deptsRes, msgsRes, apptsRes] = await Promise.all([
           axios.get('http://localhost:5000/api/doctors'),
           axios.get('http://localhost:5000/api/services'),
           axios.get('http://localhost:5000/api/departments'),
-          axios.get('http://localhost:5000/api/messages', config)
+          axios.get('http://localhost:5000/api/messages', config),
+          axios.get('http://localhost:5000/api/appointments', config)
         ]);
         
         const unread = msgsRes.data.filter(m => !m.isRead).length;
+        const pendingAppts = apptsRes.data.filter(a => a.status === 'Pending').length;
 
         setStats({
           doctors: docsRes.data.length,
           services: srvsRes.data.length,
           departments: deptsRes.data.length,
           messages: msgsRes.data.length,
-          unreadMessages: unread
+          unreadMessages: unread,
+          appointments: apptsRes.data.length,
+          pendingAppointments: pendingAppts
         });
       } catch (err) {
         console.error('Failed to load dashboard stats:', err);
@@ -105,6 +109,23 @@ const AdminDashboard = () => {
           <a href="/admin/departments" className="menu-item">
             <LayoutGrid className="menu-icon" />
             Departments
+          </a>
+          <a href="/admin/appointments" className="menu-item">
+            <Calendar className="menu-icon" />
+            Appointments
+            {stats.pendingAppointments > 0 && (
+              <span style={{
+                marginLeft: 'auto',
+                backgroundColor: '#eab308',
+                color: '#ffffff',
+                fontSize: '11px',
+                fontWeight: 'bold',
+                padding: '2px 6px',
+                borderRadius: '8px'
+              }}>
+                {stats.pendingAppointments}
+              </span>
+            )}
           </a>
           <a href="/admin/messages" className="menu-item">
             <Mail className="menu-icon" />
@@ -185,6 +206,20 @@ const AdminDashboard = () => {
               )}</h3>
             </div>
           </div>
+
+          <div className="stat-card">
+            <div className="stat-icon-wrapper" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
+              <Calendar className="stat-icon" />
+            </div>
+            <div className="stat-info">
+              <span className="stat-title">Appointments Scheduled</span>
+              <h3 className="stat-value">{stats.appointments} {stats.pendingAppointments > 0 && (
+                <span style={{ fontSize: '12px', color: '#ca8a04', fontWeight: 'bold' }}>
+                  ({stats.pendingAppointments} pending)
+                </span>
+              )}</h3>
+            </div>
+          </div>
         </section>
 
         {/* QUICK ACTIONS PANEL */}
@@ -204,6 +239,10 @@ const AdminDashboard = () => {
               <button onClick={() => navigate('/admin/departments')} className="action-btn">
                 <LayoutGrid className="btn-icon" />
                 <span>Manage Departments</span>
+              </button>
+              <button onClick={() => navigate('/admin/appointments')} className="action-btn">
+                <Calendar className="btn-icon" />
+                <span>Manage Appointments</span>
               </button>
               <button onClick={() => navigate('/admin/messages')} className="action-btn">
                 <Mail className="btn-icon" />

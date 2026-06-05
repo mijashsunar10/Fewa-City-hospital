@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Plus, Edit, Trash2, Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Upload, FileText, Image as ImageIcon, Search, Mail } from 'lucide-react';
+import { Plus, Edit, Trash2, Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Upload, FileText, Image as ImageIcon, Search, Mail, Calendar } from 'lucide-react';
 import axios from 'axios';
 import './AdminDashboard.css';
 import './AdminServices.css';
@@ -249,6 +249,10 @@ const AdminServices = () => {
           <a href="/admin/departments" className="menu-item">
             <LayoutGrid className="menu-icon" />
             Departments
+          </a>
+          <a href="/admin/appointments" className="menu-item">
+            <Calendar className="menu-icon" />
+            Appointments
           </a>
           <a href="/admin/messages" className="menu-item">
             <Mail className="menu-icon" />

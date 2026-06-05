@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check if user is logged in
-    const storedUser = localStorage.getItem('fewa_admin_user');
+    const storedUser = localStorage.getItem('fewa_user') || localStorage.getItem('fewa_admin_user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
       const data = response.data;
       
       setUser(data);
-      localStorage.setItem('fewa_admin_user', JSON.stringify(data));
+      localStorage.setItem('fewa_user', JSON.stringify(data));
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed';
@@ -41,14 +41,14 @@ export const AuthProvider = ({ children }) => {
         name,
         email,
         password,
-        role: role || 'admin' // Default to admin for convenient setup
+        role: role || 'user' // Default to patient (user) role
       });
       const data = response.data;
       
       // If registerer is not logged in, log them in as this user
       if (!user) {
         setUser(data);
-        localStorage.setItem('fewa_admin_user', JSON.stringify(data));
+        localStorage.setItem('fewa_user', JSON.stringify(data));
       }
       return { success: true };
     } catch (error) {
@@ -57,16 +57,37 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Update Profile
+  const updateProfile = async (profileData) => {
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user?.token}`
+        }
+      };
+      const response = await axios.put(`${API_URL}/profile`, profileData, config);
+      const data = response.data;
+      
+      setUser(data);
+      localStorage.setItem('fewa_user', JSON.stringify(data));
+      return { success: true, user: data };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Profile update failed';
+      return { success: false, error: message };
+    }
+  };
+
   // Logout User
   const logout = () => {
     setUser(null);
+    localStorage.removeItem('fewa_user');
     localStorage.removeItem('fewa_admin_user');
   };
 
   const token = user ? user.token : null;
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, updateProfile, logout }}>
       {children}
     </AuthContext.Provider>
   );
