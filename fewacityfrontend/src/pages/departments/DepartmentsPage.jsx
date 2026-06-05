@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { Search, Info } from 'lucide-react';
 import axios from 'axios';
 import './DepartmentsPage.css';
 
 const DepartmentsPage = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [departments, setDepartments] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [activeDeptId, setActiveDeptId] = useState('');
@@ -236,14 +239,18 @@ const DepartmentsPage = () => {
                           />
                           <h4>{doc.name}</h4>
                           <span>{doc.qualification || doc.position}</span>
-                          <a 
-                            className="book-btn" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            href={handleWhatsAppLink(doc)}
+                          <button 
+                            className="book-btn w-full text-center border-0 cursor-pointer" 
+                            onClick={() => {
+                              if (user) {
+                                navigate(`/patient/dashboard?tab=book&deptName=${currentDept.title}&docId=${doc._id}`);
+                              } else {
+                                navigate('/login');
+                              }
+                            }}
                           >
                             Book Appointment
-                          </a>
+                          </button>
                         </div>
                       );
                     })}

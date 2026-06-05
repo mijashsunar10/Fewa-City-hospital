@@ -108,6 +108,29 @@ const PatientDashboard = () => {
     }
   }, [user, token]);
 
+  useEffect(() => {
+    if (activeTab === 'book' && departments.length > 0) {
+      const deptName = searchParams.get('deptName');
+      const docId = searchParams.get('docId');
+      
+      if (deptName) {
+        const cleanName = deptName.toLowerCase().replace(' department', '').replace('s', '').trim();
+        const matchedDept = departments.find(d => {
+          const titleClean = d.title.toLowerCase().replace(' department', '').replace('s', '').trim();
+          const slugClean = d.slug.toLowerCase().replace(' department', '').replace('s', '').trim();
+          return titleClean === cleanName || slugClean === cleanName || titleClean.includes(cleanName) || cleanName.includes(titleClean);
+        });
+
+        if (matchedDept) {
+          setBookingDept(matchedDept._id);
+          if (docId) {
+            setBookingDoc(docId);
+          }
+        }
+      }
+    }
+  }, [searchParams, departments, activeTab]);
+
   const handleTabChange = (tab) => {
     setSearchParams({ tab });
     // Reset alerts

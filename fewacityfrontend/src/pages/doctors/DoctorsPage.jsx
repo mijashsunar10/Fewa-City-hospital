@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { Search, Calendar, Stethoscope, Heart, ShieldAlert, Award, Phone } from 'lucide-react';
 import axios from 'axios';
 import './DoctorsPage.css';
@@ -27,6 +29,8 @@ const departments = [
 ];
 
 const DoctorsPage = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
   const [departmentsList, setDepartmentsList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -188,15 +192,19 @@ const DoctorsPage = () => {
                     <div className="doctor-divider"></div>
                     
                     <div className="doctor-actions">
-                      <a
-                        href={handleWhatsAppLink(doctor)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="doctor-book-whatsapp-btn"
+                      <button
+                        onClick={() => {
+                          if (user) {
+                            navigate(`/patient/dashboard?tab=book&deptName=${doctor.department}&docId=${doctor._id}`);
+                          } else {
+                            navigate('/login');
+                          }
+                        }}
+                        className="doctor-book-whatsapp-btn w-full justify-center border-0 cursor-pointer"
                       >
                         <Calendar className="btn-icon" />
                         Book Appointment
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </div>
