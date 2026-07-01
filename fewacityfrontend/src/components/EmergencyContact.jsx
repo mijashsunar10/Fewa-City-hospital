@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './EmergencyContact.css';
 
 const EmergencyContact = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const togglePopup = () => {
     setIsOpen(!isOpen);
@@ -22,15 +26,19 @@ const EmergencyContact = () => {
       </div>
 
       {/* ================= BOOK APPOINTMENT BUTTON ================= */}
-      <a 
-        href="https://wa.me/9779765940555?text=Hello%20I%20want%20to%20book%20an%20appointment"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="appointment-float"
-        title="Book Appointment on WhatsApp"
+      <button 
+        onClick={() => {
+          if (user) {
+            navigate('/patient/dashboard?tab=book');
+          } else {
+            navigate('/register');
+          }
+        }}
+        className="appointment-float border-0 cursor-pointer"
+        title="Book Appointment"
       >
         📅
-      </a>
+      </button>
 
       {/* ================= EMERGENCY POPUP ================= */}
       <div 

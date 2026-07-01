@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Calendar } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import './DoctorsSection.css';
 
 const DoctorsSection = () => {
   const [featuredDoctors, setFeaturedDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -42,8 +45,6 @@ const DoctorsSection = () => {
                 ? (doc.image.startsWith('/uploads/') ? `http://localhost:5000${doc.image}` : doc.image)
                 : doc.img;
               const docPosition = doc.qualification || doc.position;
-              const phone = doc.phone || '9765940555';
-              const waLink = `https://wa.me/977${phone}?text=${encodeURIComponent(`Hello, I would like to book an appointment with ${doc.name} (${docPosition}) at Fewa City Hospital.`)}`;
 
               return (
                 <div className="home-doctor-card" key={doc._id || idx}>
@@ -61,15 +62,19 @@ const DoctorsSection = () => {
                     <h3>{doc.name}</h3>
                     <span className="position">{docPosition}</span>
                     <div className="home-doctor-actions">
-                      <a 
-                        href={waLink} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="home-doctor-book-btn"
+                      <button 
+                        onClick={() => {
+                          if (user) {
+                            navigate(`/patient/dashboard?tab=book&deptName=${doc.department}&docId=${doc._id}`);
+                          } else {
+                            navigate('/register');
+                          }
+                        }}
+                        className="home-doctor-book-btn border-0 cursor-pointer w-full"
                       >
                         <Calendar className="btn-icon" />
                         Book Appointment
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </div>

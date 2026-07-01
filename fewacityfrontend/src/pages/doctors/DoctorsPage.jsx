@@ -77,13 +77,6 @@ const DoctorsPage = () => {
     });
   }, [doctors, searchTerm, selectedDept]);
 
-  const handleWhatsAppLink = (doctor) => {
-    const docPosition = doctor.qualification || doctor.position || '';
-    const phone = doctor.phone || '9765940555';
-    const text = encodeURIComponent(`Hello, I would like to book an appointment with ${doctor.name} (${docPosition}) at Fewa City Hospital.`);
-    return `https://wa.me/977${phone}?text=${text}`;
-  };
-
   return (
     <section className="doctors-page-section">
       {/* HERO BANNER */}
@@ -197,7 +190,7 @@ const DoctorsPage = () => {
                           if (user) {
                             navigate(`/patient/dashboard?tab=book&deptName=${doctor.department}&docId=${doctor._id}`);
                           } else {
-                            navigate('/login');
+                            navigate('/register');
                           }
                         }}
                         className="doctor-book-whatsapp-btn w-full justify-center border-0 cursor-pointer"

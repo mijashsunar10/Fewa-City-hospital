@@ -116,13 +116,6 @@ const DepartmentsPage = () => {
     }
   }, [filteredDepartments, activeDeptId]);
 
-  const handleWhatsAppLink = (doctor) => {
-    const docPosition = doctor.qualification || doctor.position || '';
-    const phone = doctor.phone || '9765940555';
-    const text = encodeURIComponent(`Hello, I would like to book an appointment with ${doctor.name} (${docPosition}) at Fewa City Hospital.`);
-    return `https://wa.me/977${phone}?text=${text}`;
-  };
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4" style={{ padding: '80px 20px' }}>
@@ -245,7 +238,7 @@ const DepartmentsPage = () => {
                               if (user) {
                                 navigate(`/patient/dashboard?tab=book&deptName=${currentDept.title}&docId=${doc._id}`);
                               } else {
-                                navigate('/login');
+                                navigate('/register');
                               }
                             }}
                           >

@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Info, Calendar, Award, Shield, Check } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import './ServicesPage.css';
 
@@ -10,6 +12,8 @@ const ServicesPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -37,11 +41,6 @@ const ServicesPage = () => {
       return matchesSearch && matchesCategory;
     });
   }, [services, searchTerm, selectedCategory]);
-
-  const handleInquiryLink = (service) => {
-    const text = encodeURIComponent(`Hello, I would like to inquire about the ${service.title} service at Fewa City Hospital.`);
-    return `https://wa.me/9779765940555?text=${text}`;
-  };
 
   return (
     <div className="services-page-wrapper">
@@ -142,15 +141,19 @@ const ServicesPage = () => {
                   <p>{service.desc}</p>
                   
                   <div className="service-card-actions">
-                    <a
-                      href={handleInquiryLink(service)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="service-inquiry-btn"
+                    <button
+                      onClick={() => {
+                        if (user) {
+                          navigate('/patient/dashboard?tab=book');
+                        } else {
+                          navigate('/register');
+                        }
+                      }}
+                      className="service-inquiry-btn border-0 cursor-pointer w-full"
                     >
                       <Calendar className="btn-icon" />
                       Book / Inquire Now
-                    </a>
+                    </button>
                   </div>
                 </div>
               </div>
