@@ -216,16 +216,7 @@ const DoctorsPage = () => {
         ) : (
           <div className="doctors-no-results-card">
             <ShieldAlert className="no-results-icon" />
-            <h3>No Specialists Found</h3>git push origin main
-[main 2a65b52] fix: integrate dynamic SEO hook across all main website pages
- 7 files changed, 49 insertions(+)
-Enumerating objects: 35, done.
-Counting objects: 100% (35/35), done.
-Delta compression using up to 8 threads
-Compressing objects: 100% (18/18), done.
-Writing objects: 100% (18/18), 2.92 KiB | 2.92 MiB/s, done.
-Total 18 (delta 13), reused 0 (delta 0), pack-reused 0
-remote: Resolving deltas: 100% (13/13), completed with 13 local objects.
+            <h3>No Specialists Found</h3>
             <p>We couldn't find any specialist matching your search. Please check the spelling or try selecting another department filter.</p>
             <button
               onClick={() => {

@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import './DoctorsSection.css';
 import API_BASE_URL from '../../config/api';
+import { DoctorSkeleton } from '../../components/Skeleton';
 
 const DoctorsSection = () => {
   const [featuredDoctors, setFeaturedDoctors] = useState([]);
@@ -39,7 +40,9 @@ const DoctorsSection = () => {
         </div>
 
         {/* TEAM GRID */}
-        {!loading && (
+        {loading ? (
+          <DoctorSkeleton count={4} />
+        ) : (
           <div className="home-doctors-grid">
             {featuredDoctors.map((doc, idx) => {
               const docImg = doc.image 

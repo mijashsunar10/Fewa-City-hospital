@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './MedicalServices.css';
 import API_BASE_URL from '../../config/api';
+import { ServiceSkeleton } from '../../components/Skeleton';
 
 const MedicalServices = () => {
   const [services, setServices] = useState([]);
@@ -30,8 +31,8 @@ const MedicalServices = () => {
         <h2>Our Medical Services</h2>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b' }}>
-            <p>Loading medical services...</p>
+          <div className="w-full mt-6">
+            <ServiceSkeleton count={4} />
           </div>
         ) : (
           <div className="features-grid">
