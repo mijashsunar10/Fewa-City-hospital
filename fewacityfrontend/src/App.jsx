@@ -8,6 +8,7 @@ import DoctorsPage from './pages/doctors/DoctorsPage'
 import CollegePrograms from './pages/college/CollegePrograms'
 import ServicesPage from './pages/services/ServicesPage'
 import ContactUs from './pages/contact/ContactUs'
+import Gallery from './pages/gallery/Gallery'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminRegister from './pages/admin/AdminRegister'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -40,6 +41,7 @@ function AppContent() {
           <Route path="/pcl-nursing" element={<CollegePrograms />} />
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/services/" element={<ServicesPage />} />
+          <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact-us" element={<ContactUs />} />
           <Route path="/contact-us/" element={<ContactUs />} />
           <Route path="/login" element={<PatientLogin />} />
