@@ -139,7 +139,7 @@ const AdminDoctors = () => {
     setFormData({
       name: doctor.name,
       qualification: doctor.qualification,
-      department: doctor.department,
+      department: doctor.department?.title?.replace(' Department', '') || doctor.department || '',
       phone: doctor.phone || '9765940555',
       imageType: isLocalUpload ? 'upload' : 'url',
       imageUrl: isLocalUpload ? '' : doctor.image,
@@ -244,11 +244,14 @@ const AdminDoctors = () => {
   };
 
   // Filtered doctors list based on search term
-  const filteredDoctors = doctors.filter(doc => 
-    doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.qualification.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredDoctors = doctors.filter(doc => {
+    const deptName = doc.department?.title || doc.department || '';
+    return (
+      doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      deptName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doc.qualification.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   if (loading || !user) {
     return (
@@ -382,7 +385,7 @@ const AdminDoctors = () => {
                       />
                     </td>
                     <td className="doctor-table-name">{doc.name}</td>
-                    <td><span className="doctor-table-dept-badge">{doc.department}</span></td>
+                    <td><span className="doctor-table-dept-badge">{doc.department?.title?.replace(' Department', '') || doc.department || ''}</span></td>
                     <td className="doctor-table-qual">{doc.qualification}</td>
                     <td className="doctor-table-phone">{doc.phone}</td>
                     <td className="doctor-table-actions">

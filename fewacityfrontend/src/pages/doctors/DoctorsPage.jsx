@@ -66,13 +66,13 @@ const DoctorsPage = () => {
     return doctors.filter(doctor => {
       const docName = doctor.name || '';
       const docPosition = doctor.qualification || doctor.position || '';
-      const docDept = doctor.department || '';
+      const docDept = doctor.department?.title?.replace(' Department', '') || doctor.department || '';
 
       const matchesSearch = docName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             docPosition.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             docDept.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesDept = selectedDept === 'All' || docDept === selectedDept;
+      const matchesDept = selectedDept === 'All' || docDept.toLowerCase() === selectedDept.toLowerCase();
 
       return matchesSearch && matchesDept;
     });
@@ -166,6 +166,7 @@ const DoctorsPage = () => {
                 : doctor.img;
               
               const docPosition = doctor.qualification || doctor.position;
+              const docDept = doctor.department?.title?.replace(' Department', '') || doctor.department || '';
 
               return (
                 <div key={doctor._id || index} className="doctor-item-card">
@@ -178,7 +179,7 @@ const DoctorsPage = () => {
                         e.target.src = "https://fch.com.np/wp-content/uploads/2026/03/docotorlast.jpg";
                       }}
                     />
-                    <div className="doctor-dept-tag">{doctor.department}</div>
+                    <div className="doctor-dept-tag">{docDept}</div>
                   </div>
                   <div className="doctor-card-details">
                     <h3>{doctor.name}</h3>
@@ -189,7 +190,7 @@ const DoctorsPage = () => {
                       <button
                         onClick={() => {
                           if (user) {
-                            navigate(`/patient/dashboard?tab=book&deptName=${doctor.department}&docId=${doctor._id}`);
+                            navigate(`/patient/dashboard?tab=book&deptName=${docDept}&docId=${doctor._id}`);
                           } else {
                             navigate('/register');
                           }

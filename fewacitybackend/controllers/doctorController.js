@@ -1,3 +1,5 @@
+import mongoose from 'mongoose';
+import Department from '../models/Department.js';
 import Doctor from '../models/Doctor.js';
 
 const seedDoctors = [
@@ -41,18 +43,61 @@ const seedDoctors = [
   { name: "Dr. Deependra Man Simang Gainda", qualification: "Oncologist", department: "Oncology", image: "https://fch.com.np/wp-content/uploads/2026/03/docotorlast.jpg" }
 ];
 
+// Helper to resolve a department string or ObjectId to a valid Department ObjectId
+const resolveDepartmentId = async (departmentVal) => {
+  if (!departmentVal) return null;
+  
+  if (mongoose.Types.ObjectId.isValid(departmentVal)) {
+    return departmentVal;
+  }
+  
+  // Try searching existing department matching search string
+  let dept = await Department.findOne({
+    $or: [
+      { title: new RegExp(`^${departmentVal}`, 'i') },
+      { slug: new RegExp(`^${departmentVal}`, 'i') },
+      { title: new RegExp(departmentVal, 'i') }
+    ]
+  });
+  
+  if (!dept) {
+    // Dynamically create a department if it doesn't exist
+    const cleanTitle = departmentVal.endsWith('Department') ? departmentVal : `${departmentVal} Department`;
+    const cleanSlug = departmentVal.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    dept = await Department.create({
+      title: cleanTitle,
+      slug: cleanSlug,
+      description: `The ${cleanTitle} at Fewa City Hospital.`,
+      points: ['Specialist clinical diagnostics', 'Personalized recovery plans']
+    });
+  }
+  
+  return dept._id;
+};
+
 // @desc    Get all doctors (seeds automatically if database is empty)
 // @route   GET /api/doctors
 // @access  Public
 export const getDoctors = async (req, res) => {
   try {
-    let doctors = await Doctor.find().sort({ createdAt: -1 });
+    let doctors = await Doctor.find().populate('department').sort({ createdAt: -1 });
     
     // Auto-seed if empty
     if (doctors.length === 0) {
-      console.log('Doctors collection empty. Seeding initial 38 specialist doctors...');
-      await Doctor.insertMany(seedDoctors);
-      doctors = await Doctor.find().sort({ createdAt: -1 });
+      console.log('Doctors collection empty. Seeding initial specialist doctors...');
+      
+      // Resolve each doctor's department string into an ObjectId
+      const doctorsToInsert = [];
+      for (const doc of seedDoctors) {
+        const deptId = await resolveDepartmentId(doc.department);
+        doctorsToInsert.push({
+          ...doc,
+          department: deptId
+        });
+      }
+      
+      await Doctor.insertMany(doctorsToInsert);
+      doctors = await Doctor.find().populate('department').sort({ createdAt: -1 });
     }
 
     res.status(200).json(doctors);
@@ -76,16 +121,20 @@ export const createDoctor = async (req, res) => {
       imageUrl = req.body.image; // Support fallback to external URL
     }
 
+    const deptId = await resolveDepartmentId(department);
+
     const doctor = new Doctor({
       name,
       qualification,
-      department,
+      department: deptId,
       phone: phone || '9765940555',
       image: imageUrl
     });
 
     const savedDoctor = await doctor.save();
-    res.status(201).json(savedDoctor);
+    // Return populated doctor
+    const populated = await Doctor.findById(savedDoctor._id).populate('department');
+    res.status(201).json(populated);
   } catch (error) {
     res.status(400).json({ message: 'Error creating doctor record', error: error.message });
   }
@@ -106,8 +155,12 @@ export const updateDoctor = async (req, res) => {
 
     doctor.name = name || doctor.name;
     doctor.qualification = qualification || doctor.qualification;
-    doctor.department = department || doctor.department;
     doctor.phone = phone !== undefined ? phone : doctor.phone;
+
+    if (department !== undefined) {
+      const deptId = await resolveDepartmentId(department);
+      doctor.department = deptId;
+    }
 
     if (req.file) {
       doctor.image = `/uploads/${req.file.filename}`;
@@ -116,7 +169,8 @@ export const updateDoctor = async (req, res) => {
     }
 
     const updatedDoctor = await doctor.save();
-    res.status(200).json(updatedDoctor);
+    const populated = await Doctor.findById(updatedDoctor._id).populate('department');
+    res.status(200).json(populated);
   } catch (error) {
     res.status(400).json({ message: 'Error updating doctor record', error: error.message });
   }

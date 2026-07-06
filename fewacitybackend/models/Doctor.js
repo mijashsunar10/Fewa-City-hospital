@@ -13,9 +13,9 @@ const doctorSchema = new mongoose.Schema(
       trim: true,
     },
     department: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Department',
       required: [true, 'Please select a department'],
-      trim: true,
     },
     image: {
       type: String,

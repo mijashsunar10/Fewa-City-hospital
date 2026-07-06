@@ -313,10 +313,9 @@ export const createDepartment = async (req, res) => {
       try {
         const doctorIdsArray = JSON.parse(doctorIds);
         if (Array.isArray(doctorIdsArray) && doctorIdsArray.length > 0) {
-          const deptName = title.replace(' Department', '');
           await Doctor.updateMany(
             { _id: { $in: doctorIdsArray } },
-            { $set: { department: deptName } }
+            { $set: { department: savedDepartment._id } }
           );
         }
       } catch (err) {
@@ -342,8 +341,6 @@ export const updateDepartment = async (req, res) => {
     }
 
     const { title, description, extra, points, doctorIds } = req.body;
-    let oldDeptName = department.title.replace(' Department', '');
-    let newDeptName = oldDeptName;
 
     // Check if title is being changed to an existing title
     if (title && title !== department.title) {
@@ -358,13 +355,6 @@ export const updateDepartment = async (req, res) => {
       }
       department.title = title;
       department.slug = slug;
-      newDeptName = title.replace(' Department', '');
-
-      // Automatically rename doctor department values for existing doctors in this department
-      await Doctor.updateMany(
-        { department: oldDeptName },
-        { $set: { department: newDeptName } }
-      );
     }
 
     if (description !== undefined) department.description = description;
@@ -389,16 +379,16 @@ export const updateDepartment = async (req, res) => {
           // Set department for selected doctors
           await Doctor.updateMany(
             { _id: { $in: doctorIdsArray } },
-            { $set: { department: newDeptName } }
+            { $set: { department: department._id } }
           );
 
           // Clear department for deselected doctors who were previously in this department
           await Doctor.updateMany(
             {
               _id: { $nin: doctorIdsArray },
-              department: { $in: [oldDeptName, newDeptName] }
+              department: department._id
             },
-            { $set: { department: '' } }
+            { $set: { department: null } }
           );
         }
       } catch (err) {
@@ -424,11 +414,10 @@ export const deleteDepartment = async (req, res) => {
     }
 
     // Clear department field for any doctors currently under this department
-    const deptName = department.title.replace(' Department', '');
     try {
       await Doctor.updateMany(
-        { department: deptName },
-        { $set: { department: '' } }
+        { department: department._id },
+        { $set: { department: null } }
       );
     } catch (docErr) {
       console.error('Failed to clear doctor department field during department deletion:', docErr);

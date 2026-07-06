@@ -46,6 +46,7 @@ const DoctorsSection = () => {
                 ? (doc.image.startsWith('/uploads/') ? `${API_BASE_URL}${doc.image}` : doc.image)
                 : doc.img;
               const docPosition = doc.qualification || doc.position;
+              const docDept = doc.department?.title?.replace(' Department', '') || doc.department || '';
 
               return (
                 <div className="home-doctor-card" key={doc._id || idx}>
@@ -66,7 +67,7 @@ const DoctorsSection = () => {
                       <button 
                         onClick={() => {
                           if (user) {
-                            navigate(`/patient/dashboard?tab=book&deptName=${doc.department}&docId=${doc._id}`);
+                            navigate(`/patient/dashboard?tab=book&deptName=${docDept}&docId=${doc._id}`);
                           } else {
                             navigate('/register');
                           }
