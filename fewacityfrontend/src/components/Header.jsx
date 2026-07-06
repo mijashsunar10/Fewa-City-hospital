@@ -90,13 +90,13 @@ const Header = () => {
           ${isMenuOpen ? 'flex flex-col p-5 gap-4' : 'hidden md:flex'}
         `}>
           <NavLink to="/">Home</NavLink>
-          <NavLink to="/about-us/">About Us</NavLink>
+          <NavLink to="/about-us">About Us</NavLink>
           <NavLink to="/departments">Departments</NavLink>
           <NavLink to="/doctors">Doctors</NavLink>
-          <NavLink to="/services/">Services</NavLink>
+          <NavLink to="/services">Services</NavLink>
           <NavLink to="/college-program">College Programme</NavLink>
           <NavLink to="/gallery">Gallery</NavLink>
-          <NavLink to="/contact-us/">Contact Us</NavLink>
+          <NavLink to="/contact-us">Contact Us</NavLink>
           
           {/* AUTHENTICATION PATHS */}
           {user ? (

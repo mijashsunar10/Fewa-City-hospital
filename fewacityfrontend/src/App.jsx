@@ -34,16 +34,14 @@ function AppContent() {
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/about-us/" element={<About />} />
+          <Route path="/about-us" element={<About />} />
           <Route path="/departments" element={<DepartmentsPage />} />
           <Route path="/doctors" element={<DoctorsPage />} />
           <Route path="/college-program" element={<CollegePrograms />} />
           <Route path="/pcl-nursing" element={<CollegePrograms />} />
           <Route path="/services" element={<ServicesPage />} />
-          <Route path="/services/" element={<ServicesPage />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact-us" element={<ContactUs />} />
-          <Route path="/contact-us/" element={<ContactUs />} />
           <Route path="/login" element={<PatientLogin />} />
           <Route path="/register" element={<PatientRegister />} />
           <Route path="/patient/dashboard" element={<PatientDashboard />} />
