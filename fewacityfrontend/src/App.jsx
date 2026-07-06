@@ -22,6 +22,7 @@ import PatientRegister from './pages/patient/PatientRegister'
 import PatientDashboard from './pages/patient/PatientDashboard'
 import { AuthProvider } from './context/AuthContext'
 import EmergencyContact from './components/EmergencyContact'
+import ProtectedRoute from './components/ProtectedRoute'
 
 function AppContent() {
   const location = useLocation();
@@ -44,15 +45,64 @@ function AppContent() {
           <Route path="/contact-us" element={<ContactUs />} />
           <Route path="/login" element={<PatientLogin />} />
           <Route path="/register" element={<PatientRegister />} />
-          <Route path="/patient/dashboard" element={<PatientDashboard />} />
+          <Route 
+            path="/patient/dashboard" 
+            element={
+              <ProtectedRoute allowedRoles={['user']}>
+                <PatientDashboard />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/register" element={<AdminRegister />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/doctors" element={<AdminDoctors />} />
-          <Route path="/admin/services" element={<AdminServices />} />
-          <Route path="/admin/departments" element={<AdminDepartments />} />
-          <Route path="/admin/messages" element={<AdminMessages />} />
-          <Route path="/admin/appointments" element={<AdminAppointments />} />
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/doctors" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDoctors />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/services" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminServices />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/departments" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDepartments />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/messages" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminMessages />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/appointments" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminAppointments />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </main>
 
