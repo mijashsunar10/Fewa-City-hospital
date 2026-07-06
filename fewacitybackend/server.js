@@ -11,6 +11,7 @@ import departmentRoutes from './routes/departmentRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import appointmentRoutes from './routes/appointmentRoutes.js';
 import { sanitizeInput } from './middleware/sanitize.js';
+import { generalLimiter, authLimiter, formLimiter } from './middleware/rateLimiter.js';
 
 // Load environment variables
 dotenv.config();
@@ -51,6 +52,12 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(sanitizeInput);
+
+// Apply rate limiting
+app.use('/api', generalLimiter);
+app.use('/api/auth', authLimiter);
+app.use('/api/messages', formLimiter);
+app.use('/api/appointments', formLimiter);
 
 // HTTP Request Logging
 if (process.env.NODE_ENV === 'development') {
