@@ -9,6 +9,7 @@ const AdminRegister = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [adminSecretKey, setAdminSecretKey] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,7 +33,7 @@ const AdminRegister = () => {
     }
 
     setIsSubmitting(true);
-    const result = await register(name, email, password, 'admin'); // Register as 'admin'
+    const result = await register(name, email, password, 'admin', adminSecretKey); // Register as 'admin' with key
     setIsSubmitting(false);
 
     if (result.success) {
@@ -127,6 +128,21 @@ const AdminRegister = () => {
                 placeholder="Repeat password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="auth-input-group">
+            <label htmlFor="adminSecretKey">Admin Registration Secret Key</label>
+            <div className="input-with-icon">
+              <Shield className="input-field-icon" />
+              <input
+                type="password"
+                id="adminSecretKey"
+                required
+                placeholder="Enter admin registration secret"
+                value={adminSecretKey}
+                onChange={(e) => setAdminSecretKey(e.target.value)}
               />
             </div>
           </div>

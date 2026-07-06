@@ -36,13 +36,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Register User
-  const register = async (name, email, password, role) => {
+  const register = async (name, email, password, role, adminSecretKey) => {
     try {
       const response = await axios.post(`${API_URL}/register`, {
         name,
         email,
         password,
-        role: role || 'user' // Default to patient (user) role
+        role: role || 'user', // Default to patient (user) role
+        adminSecretKey
       });
       const data = response.data;
       

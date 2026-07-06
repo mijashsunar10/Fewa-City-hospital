@@ -13,7 +13,7 @@ const generateToken = (id) => {
 // @access  Public
 export const registerUser = async (req, res, next) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, adminSecretKey } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -21,6 +21,15 @@ export const registerUser = async (req, res, next) => {
     if (userExists) {
       res.status(400);
       return next(new Error('User already exists'));
+    }
+
+    // Require admin secret key if trying to register as admin
+    if (role === 'admin') {
+      const secret = process.env.ADMIN_SECRET_KEY || 'fewacity-admin-2026';
+      if (!adminSecretKey || adminSecretKey !== secret) {
+        res.status(401);
+        return next(new Error('Invalid administrator registration key'));
+      }
     }
 
     // Create user (accept role if provided, defaults to 'user' in schema)
