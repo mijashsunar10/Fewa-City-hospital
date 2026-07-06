@@ -5,6 +5,7 @@ import { Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Search, Mail, 
 import axios from 'axios';
 import './AdminDashboard.css';
 import './AdminDepartments.css';
+import API_BASE_URL from '../../config/api';
 
 const AdminMessages = () => {
   const { user, token, logout, loading } = useAuth();
@@ -38,7 +39,7 @@ const AdminMessages = () => {
             Authorization: `Bearer ${token}`
           }
         };
-        const response = await axios.get('http://localhost:5000/api/messages', config);
+        const response = await axios.get(API_BASE_URL + '/api/messages', config);
         setMessages(response.data);
       } catch (err) {
         setActionError(err.response?.data?.message || 'Failed to fetch messages list');
@@ -69,7 +70,7 @@ const AdminMessages = () => {
             Authorization: `Bearer ${token}`
           }
         };
-        await axios.put(`http://localhost:5000/api/messages/${msg._id}/read`, {}, config);
+        await axios.put(`${API_BASE_URL}/api/messages/${msg._id}/read`, {}, config);
         
         // Update local state to reflect read status
         setMessages(prev => prev.map(m => m._id === msg._id ? { ...m, isRead: true } : m));
@@ -89,7 +90,7 @@ const AdminMessages = () => {
             Authorization: `Bearer ${token}`
           }
         };
-        await axios.delete(`http://localhost:5000/api/messages/${id}`, config);
+        await axios.delete(`${API_BASE_URL}/api/messages/${id}`, config);
         setActionSuccess(`Message from "${senderName}" successfully deleted.`);
         
         // Remove from local state

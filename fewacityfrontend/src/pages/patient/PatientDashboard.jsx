@@ -6,6 +6,7 @@ import {
   UserCheck, AlertCircle, Edit, MapPin, Phone, Award, ShieldAlert, BookOpen, ArrowLeft
 } from 'lucide-react';
 import axios from 'axios';
+import API_BASE_URL from '../../config/api';
 
 const PatientDashboard = () => {
   const { user, token, logout, loading, updateProfile } = useAuth();
@@ -87,9 +88,9 @@ const PatientDashboard = () => {
       };
 
       const [apptRes, docsRes, deptsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/appointments/my', config),
-        axios.get('http://localhost:5000/api/doctors'),
-        axios.get('http://localhost:5000/api/departments')
+        axios.get(API_BASE_URL + '/api/appointments/my', config),
+        axios.get(API_BASE_URL + '/api/doctors'),
+        axios.get(API_BASE_URL + '/api/departments')
       ]);
 
       setAppointments(apptRes.data);
@@ -156,7 +157,7 @@ const PatientDashboard = () => {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      await axios.post('http://localhost:5000/api/appointments', {
+      await axios.post(API_BASE_URL + '/api/appointments', {
         department: bookingDept,
         doctor: bookingDoc,
         date: bookingDate,
@@ -212,7 +213,7 @@ const PatientDashboard = () => {
       const config = {
         headers: { Authorization: `Bearer ${token}` }
       };
-      await axios.put(`http://localhost:5000/api/appointments/${id}/cancel`, {}, config);
+      await axios.put(`${API_BASE_URL}/api/appointments/${id}/cancel`, {}, config);
       fetchData();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to cancel appointment.');

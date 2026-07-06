@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../config/api';
 
 const AuthContext = createContext(null);
 
@@ -8,7 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // Set API base URL
-  const API_URL = 'http://localhost:5000/api/auth';
+  const API_URL = API_BASE_URL + '/api/auth';
 
   useEffect(() => {
     // Check if user is logged in

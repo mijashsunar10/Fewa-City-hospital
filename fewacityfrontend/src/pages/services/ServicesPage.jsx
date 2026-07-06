@@ -4,6 +4,7 @@ import { Search, Info, Calendar, Award, Shield, Check } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import './ServicesPage.css';
+import API_BASE_URL from '../../config/api';
 
 const categories = ["All", "Diagnostics", "Critical Care", "Specialized Treatment", "General"];
 
@@ -21,7 +22,7 @@ const ServicesPage = () => {
     const fetchServices = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:5000/api/services');
+        const response = await axios.get(API_BASE_URL + '/api/services');
         setServices(response.data);
       } catch (error) {
         console.error('Error fetching clinical services:', error);
@@ -126,7 +127,7 @@ const ServicesPage = () => {
                 <div className="service-card-top-accent"></div>
                 <div className="service-card-image-wrapper">
                   <img
-                    src={service.image.startsWith('/uploads/') ? `http://localhost:5000${service.image}` : service.image}
+                    src={service.image.startsWith('/uploads/') ? `${API_BASE_URL}${service.image}` : service.image}
                     alt={service.title}
                     onError={(e) => {
                       e.target.onerror = null;

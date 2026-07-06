@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Search, Info } from 'lucide-react';
 import axios from 'axios';
 import './DepartmentsPage.css';
+import API_BASE_URL from '../../config/api';
 
 const DepartmentsPage = () => {
   const { user } = useAuth();
@@ -21,8 +22,8 @@ const DepartmentsPage = () => {
         setLoading(true);
         // Fetch departments and doctors in parallel
         const [deptRes, docRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/departments'),
-          axios.get('http://localhost:5000/api/doctors')
+          axios.get(API_BASE_URL + '/api/departments'),
+          axios.get(API_BASE_URL + '/api/doctors')
         ]);
         
         setDepartments(deptRes.data);
@@ -201,7 +202,7 @@ const DepartmentsPage = () => {
                 </div>
                 <div className="dept-images">
                   <img 
-                    src={currentDept.image.startsWith('/uploads/') ? `http://localhost:5000${currentDept.image}` : currentDept.image} 
+                    src={currentDept.image.startsWith('/uploads/') ? `${API_BASE_URL}${currentDept.image}` : currentDept.image} 
                     alt={currentDept.title}
                     onError={(e) => {
                       e.target.onerror = null;
@@ -217,7 +218,7 @@ const DepartmentsPage = () => {
                   <div className="doctor-grid">
                     {currentDept.doctors.map((doc) => {
                       const docImg = doc.image 
-                        ? (doc.image.startsWith('/uploads/') ? `http://localhost:5000${doc.image}` : doc.image)
+                        ? (doc.image.startsWith('/uploads/') ? `${API_BASE_URL}${doc.image}` : doc.image)
                         : "https://fch.com.np/wp-content/uploads/2026/03/docotorlast.jpg";
                       
                       return (

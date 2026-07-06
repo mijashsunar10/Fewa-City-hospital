@@ -5,6 +5,7 @@ import { Plus, Edit, Trash2, Shield, Users, Briefcase, LayoutGrid, LogOut, Arrow
 import axios from 'axios';
 import './AdminDashboard.css';
 import './AdminServices.css';
+import API_BASE_URL from '../../config/api';
 
 const CATEGORIES = [
   "Diagnostics",
@@ -52,7 +53,7 @@ const AdminServices = () => {
   const fetchServices = async () => {
     try {
       setListLoading(true);
-      const response = await axios.get('http://localhost:5000/api/services');
+      const response = await axios.get(API_BASE_URL + '/api/services');
       setServices(response.data);
     } catch (err) {
       setActionError(err.response?.data?.message || 'Failed to fetch services list');
@@ -103,7 +104,7 @@ const AdminServices = () => {
       imageUrl: isLocalUpload ? '' : service.image,
     });
     setImageFile(null);
-    setImagePreview(isLocalUpload ? `http://localhost:5000${service.image}` : service.image);
+    setImagePreview(isLocalUpload ? `${API_BASE_URL}${service.image}` : service.image);
     setActionError('');
     setActionSuccess('');
     setIsModalOpen(true);
@@ -160,10 +161,10 @@ const AdminServices = () => {
       };
 
       if (modalMode === 'create') {
-        await axios.post('http://localhost:5000/api/services', postData, config);
+        await axios.post(API_BASE_URL + '/api/services', postData, config);
         setActionSuccess('Service successfully created!');
       } else {
-        await axios.put(`http://localhost:5000/api/services/${selectedServiceId}`, postData, config);
+        await axios.put(`${API_BASE_URL}/api/services/${selectedServiceId}`, postData, config);
         setActionSuccess('Service successfully updated!');
       }
 
@@ -189,7 +190,7 @@ const AdminServices = () => {
             Authorization: `Bearer ${token}`
           }
         };
-        await axios.delete(`http://localhost:5000/api/services/${id}`, config);
+        await axios.delete(`${API_BASE_URL}/api/services/${id}`, config);
         setActionSuccess(`Service "${title}" successfully removed.`);
         fetchServices();
         setTimeout(() => setActionSuccess(''), 3000);
@@ -328,7 +329,7 @@ const AdminServices = () => {
                   <tr key={srv._id}>
                     <td>
                       <img 
-                        src={srv.image.startsWith('/uploads/') ? `http://localhost:5000${srv.image}` : srv.image} 
+                        src={srv.image.startsWith('/uploads/') ? `${API_BASE_URL}${srv.image}` : srv.image} 
                         alt={srv.title} 
                         className="doctor-table-img-thumb"
                         onError={(e) => {

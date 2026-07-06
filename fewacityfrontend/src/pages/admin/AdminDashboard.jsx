@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { LogOut, Shield, Users, Briefcase, LayoutGrid, Activity, Calendar, Mail } from 'lucide-react';
 import axios from 'axios';
 import './AdminDashboard.css';
+import API_BASE_URL from '../../config/api';
 
 const AdminDashboard = () => {
   const { user, token, logout, loading } = useAuth();
@@ -33,11 +34,11 @@ const AdminDashboard = () => {
           }
         };
         const [docsRes, srvsRes, deptsRes, msgsRes, apptsRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/doctors'),
-          axios.get('http://localhost:5000/api/services'),
-          axios.get('http://localhost:5000/api/departments'),
-          axios.get('http://localhost:5000/api/messages', config),
-          axios.get('http://localhost:5000/api/appointments', config)
+          axios.get(API_BASE_URL + '/api/doctors'),
+          axios.get(API_BASE_URL + '/api/services'),
+          axios.get(API_BASE_URL + '/api/departments'),
+          axios.get(API_BASE_URL + '/api/messages', config),
+          axios.get(API_BASE_URL + '/api/appointments', config)
         ]);
         
         const unread = msgsRes.data.filter(m => !m.isRead).length;

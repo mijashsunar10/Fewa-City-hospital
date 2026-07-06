@@ -5,6 +5,7 @@ import { Plus, Edit, Trash2, Shield, Users, Briefcase, LayoutGrid, LogOut, Arrow
 import axios from 'axios';
 import './AdminDashboard.css';
 import './AdminDepartments.css';
+import API_BASE_URL from '../../config/api';
 
 const AdminDepartments = () => {
   const { user, token, logout, loading } = useAuth();
@@ -66,7 +67,7 @@ const AdminDepartments = () => {
   const fetchDepartments = async () => {
     try {
       setListLoading(true);
-      const response = await axios.get('http://localhost:5000/api/departments');
+      const response = await axios.get(API_BASE_URL + '/api/departments');
       setDepartments(response.data);
     } catch (err) {
       setActionError(err.response?.data?.message || 'Failed to fetch departments list');
@@ -78,7 +79,7 @@ const AdminDepartments = () => {
   // Fetch doctors list
   const fetchDoctors = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/doctors');
+      const response = await axios.get(API_BASE_URL + '/api/doctors');
       setDoctorsList(response.data);
     } catch (err) {
       console.error('Failed to fetch doctors list:', err);
@@ -148,7 +149,7 @@ const AdminDepartments = () => {
     setSelectedDoctors(selectedDocIds);
 
     setImageFile(null);
-    setImagePreview(isLocalUpload ? `http://localhost:5000${dept.image}` : dept.image);
+    setImagePreview(isLocalUpload ? `${API_BASE_URL}${dept.image}` : dept.image);
     setActionError('');
     setActionSuccess('');
     setIsModalOpen(true);
@@ -215,10 +216,10 @@ const AdminDepartments = () => {
       };
 
       if (modalMode === 'create') {
-        await axios.post('http://localhost:5000/api/departments', postData, config);
+        await axios.post(API_BASE_URL + '/api/departments', postData, config);
         setActionSuccess('Department successfully created!');
       } else {
-        await axios.put(`http://localhost:5000/api/departments/${selectedDeptId}`, postData, config);
+        await axios.put(`${API_BASE_URL}/api/departments/${selectedDeptId}`, postData, config);
         setActionSuccess('Department successfully updated!');
       }
 
@@ -245,7 +246,7 @@ const AdminDepartments = () => {
             Authorization: `Bearer ${token}`
           }
         };
-        await axios.delete(`http://localhost:5000/api/departments/${id}`, config);
+        await axios.delete(`${API_BASE_URL}/api/departments/${id}`, config);
         setActionSuccess(`Department "${title}" successfully removed.`);
         fetchDepartments();
         setTimeout(() => setActionSuccess(''), 3000);
@@ -385,7 +386,7 @@ const AdminDepartments = () => {
                     <td>
                       {dept.image ? (
                         <img 
-                          src={dept.image.startsWith('/uploads/') ? `http://localhost:5000${dept.image}` : dept.image} 
+                          src={dept.image.startsWith('/uploads/') ? `${API_BASE_URL}${dept.image}` : dept.image} 
                           alt={dept.title} 
                           className="doctor-table-img-thumb"
                           onError={(e) => {

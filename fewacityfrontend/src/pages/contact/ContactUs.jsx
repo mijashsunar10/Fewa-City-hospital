@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Phone, Mail, MapPin, Building, Send, Award, Shield, CheckCircle } from 'lucide-react';
 import axios from 'axios';
 import './ContactUs.css';
+import API_BASE_URL from '../../config/api';
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -29,7 +30,7 @@ const ContactUs = () => {
     setIsSubmitting(true);
     setSubmitError('');
     try {
-      await axios.post('http://localhost:5000/api/messages', formData);
+      await axios.post(API_BASE_URL + '/api/messages', formData);
       setIsSubmitted(true);
       setFormData({
         name: '',

@@ -4,6 +4,7 @@ import { Calendar } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import './DoctorsSection.css';
+import API_BASE_URL from '../../config/api';
 
 const DoctorsSection = () => {
   const [featuredDoctors, setFeaturedDoctors] = useState([]);
@@ -15,7 +16,7 @@ const DoctorsSection = () => {
     const fetchFeatured = async () => {
       try {
         setLoading(true);
-        const res = await axios.get('http://localhost:5000/api/doctors');
+        const res = await axios.get(API_BASE_URL + '/api/doctors');
         // Sort/filter to display first 4 doctors
         setFeaturedDoctors(res.data.slice(0, 4));
       } catch (err) {
@@ -42,7 +43,7 @@ const DoctorsSection = () => {
           <div className="home-doctors-grid">
             {featuredDoctors.map((doc, idx) => {
               const docImg = doc.image 
-                ? (doc.image.startsWith('/uploads/') ? `http://localhost:5000${doc.image}` : doc.image)
+                ? (doc.image.startsWith('/uploads/') ? `${API_BASE_URL}${doc.image}` : doc.image)
                 : doc.img;
               const docPosition = doc.qualification || doc.position;
 

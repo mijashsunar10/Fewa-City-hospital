@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Search, Calendar, Stethoscope, Heart, ShieldAlert, Award, Phone } from 'lucide-react';
 import axios from 'axios';
 import './DoctorsPage.css';
+import API_BASE_URL from '../../config/api';
 
 const departments = [
   "All",
@@ -45,8 +46,8 @@ const DoctorsPage = () => {
       try {
         setLoading(true);
         const [docRes, deptRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/doctors'),
-          axios.get('http://localhost:5000/api/departments')
+          axios.get(API_BASE_URL + '/api/doctors'),
+          axios.get(API_BASE_URL + '/api/departments')
         ]);
         setDoctors(docRes.data);
         const names = deptRes.data.map(d => d.title.replace(' Department', ''));
@@ -161,7 +162,7 @@ const DoctorsPage = () => {
           <div className="doctors-cards-grid">
             {filteredDoctors.map((doctor, index) => {
               const docImg = doctor.image 
-                ? (doctor.image.startsWith('/uploads/') ? `http://localhost:5000${doctor.image}` : doctor.image)
+                ? (doctor.image.startsWith('/uploads/') ? `${API_BASE_URL}${doctor.image}` : doctor.image)
                 : doctor.img;
               
               const docPosition = doctor.qualification || doctor.position;

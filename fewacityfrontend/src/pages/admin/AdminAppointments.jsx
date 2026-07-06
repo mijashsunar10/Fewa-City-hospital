@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Search, Mail, Calendar, Eye, Edit2, Check, X } from 'lucide-react';
 import axios from 'axios';
 import './AdminDashboard.css';
+import API_BASE_URL from '../../config/api';
 
 const AdminAppointments = () => {
   const { user, token, logout, loading } = useAuth();
@@ -43,7 +44,7 @@ const AdminAppointments = () => {
           Authorization: `Bearer ${token}`
         }
       };
-      const response = await axios.get('http://localhost:5000/api/appointments', config);
+      const response = await axios.get(API_BASE_URL + '/api/appointments', config);
       setAppointments(response.data);
     } catch (err) {
       setActionError(err.response?.data?.message || 'Failed to fetch appointments');
@@ -85,7 +86,7 @@ const AdminAppointments = () => {
         }
       };
 
-      const response = await axios.put(`http://localhost:5000/api/appointments/${selectedAppt._id}`, {
+      const response = await axios.put(`${API_BASE_URL}/api/appointments/${selectedAppt._id}`, {
         status: editStatus,
         prescription: editPrescription,
         adminNotes: editAdminNotes
@@ -113,7 +114,7 @@ const AdminAppointments = () => {
         }
       };
 
-      const response = await axios.put(`http://localhost:5000/api/appointments/${id}`, {
+      const response = await axios.put(`${API_BASE_URL}/api/appointments/${id}`, {
         status
       }, config);
 

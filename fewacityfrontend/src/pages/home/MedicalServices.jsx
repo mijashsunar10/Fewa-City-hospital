@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './MedicalServices.css';
+import API_BASE_URL from '../../config/api';
 
 const MedicalServices = () => {
   const [services, setServices] = useState([]);
@@ -10,7 +11,7 @@ const MedicalServices = () => {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/services');
+        const response = await axios.get(API_BASE_URL + '/api/services');
         // Get the first 4 services for homepage display
         setServices(response.data.slice(0, 4));
       } catch (error) {
@@ -38,7 +39,7 @@ const MedicalServices = () => {
               <div key={service._id} className="feature-card">
                 <div className="icon">
                   <img 
-                    src={service.image.startsWith('/uploads/') ? `http://localhost:5000${service.image}` : service.image} 
+                    src={service.image.startsWith('/uploads/') ? `${API_BASE_URL}${service.image}` : service.image} 
                     alt={service.title}
                     onError={(e) => {
                       e.target.onerror = null;

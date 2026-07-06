@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './Departments.css';
+import API_BASE_URL from '../../config/api';
 
 const Departments = () => {
   const [departments, setDepartments] = useState([]);
@@ -11,7 +12,7 @@ const Departments = () => {
     const fetchDepts = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:5000/api/departments');
+        const response = await axios.get(API_BASE_URL + '/api/departments');
         setDepartments(response.data);
       } catch (err) {
         console.error('Failed to fetch departments for homepage:', err);

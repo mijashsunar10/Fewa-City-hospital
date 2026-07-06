@@ -5,6 +5,7 @@ import { Plus, Edit, Trash2, Shield, Users, Briefcase, LayoutGrid, LogOut, Arrow
 import axios from 'axios';
 import './AdminDashboard.css';
 import './AdminDoctors.css';
+import API_BASE_URL from '../../config/api';
 
 const DEPARTMENTS = [
   "Internal Medicine",
@@ -71,7 +72,7 @@ const AdminDoctors = () => {
   const fetchDoctors = async () => {
     try {
       setListLoading(true);
-      const response = await axios.get('http://localhost:5000/api/doctors');
+      const response = await axios.get(API_BASE_URL + '/api/doctors');
       setDoctors(response.data);
     } catch (err) {
       setActionError(err.response?.data?.message || 'Failed to fetch doctors list');
@@ -90,7 +91,7 @@ const AdminDoctors = () => {
   useEffect(() => {
     const fetchDepts = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/departments');
+        const response = await axios.get(API_BASE_URL + '/api/departments');
         const names = response.data.map(d => d.title.replace(' Department', ''));
         setDepartmentsList(names);
         if (names.length > 0) {
@@ -144,7 +145,7 @@ const AdminDoctors = () => {
       imageUrl: isLocalUpload ? '' : doctor.image,
     });
     setImageFile(null);
-    setImagePreview(isLocalUpload ? `http://localhost:5000${doctor.image}` : doctor.image);
+    setImagePreview(isLocalUpload ? `${API_BASE_URL}${doctor.image}` : doctor.image);
     setActionError('');
     setActionSuccess('');
     setIsModalOpen(true);
@@ -202,10 +203,10 @@ const AdminDoctors = () => {
       };
 
       if (modalMode === 'create') {
-        await axios.post('http://localhost:5000/api/doctors', postData, config);
+        await axios.post(API_BASE_URL + '/api/doctors', postData, config);
         setActionSuccess('Doctor successfully created!');
       } else {
-        await axios.put(`http://localhost:5000/api/doctors/${selectedDoctorId}`, postData, config);
+        await axios.put(`${API_BASE_URL}/api/doctors/${selectedDoctorId}`, postData, config);
         setActionSuccess('Doctor successfully updated!');
       }
 
@@ -231,7 +232,7 @@ const AdminDoctors = () => {
             Authorization: `Bearer ${token}`
           }
         };
-        await axios.delete(`http://localhost:5000/api/doctors/${id}`, config);
+        await axios.delete(`${API_BASE_URL}/api/doctors/${id}`, config);
         setActionSuccess(`Dr. ${name} successfully removed.`);
         fetchDoctors();
         setTimeout(() => setActionSuccess(''), 3000);
@@ -371,7 +372,7 @@ const AdminDoctors = () => {
                   <tr key={doc._id}>
                     <td>
                       <img 
-                        src={doc.image.startsWith('/uploads/') ? `http://localhost:5000${doc.image}` : doc.image} 
+                        src={doc.image.startsWith('/uploads/') ? `${API_BASE_URL}${doc.image}` : doc.image} 
                         alt={doc.name} 
                         className="doctor-table-img-thumb"
                         onError={(e) => {
