@@ -10,6 +10,7 @@ import serviceRoutes from './routes/serviceRoutes.js';
 import departmentRoutes from './routes/departmentRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import appointmentRoutes from './routes/appointmentRoutes.js';
+import { sanitizeInput } from './middleware/sanitize.js';
 
 // Load environment variables
 dotenv.config();
@@ -49,6 +50,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(sanitizeInput);
 
 // HTTP Request Logging
 if (process.env.NODE_ENV === 'development') {
