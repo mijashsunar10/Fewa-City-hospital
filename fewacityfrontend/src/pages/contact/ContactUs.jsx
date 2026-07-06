@@ -3,8 +3,15 @@ import { Phone, Mail, MapPin, Building, Send, Award, Shield, CheckCircle } from 
 import axios from 'axios';
 import './ContactUs.css';
 import API_BASE_URL from '../../config/api';
+import useSEO from '../../hooks/useSEO';
 
 const ContactUs = () => {
+  useSEO(
+    'Contact Us',
+    'Get in touch with Fewa City Hospital Pokhara. View our address, telephone contacts, email addresses, emergency numbers, and map location.',
+    'contact hospital Pokhara, Fewa City Hospital phone number, emergency number Pokhara'
+  );
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',

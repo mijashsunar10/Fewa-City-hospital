@@ -5,10 +5,17 @@ import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import './ServicesPage.css';
 import API_BASE_URL from '../../config/api';
+import useSEO from '../../hooks/useSEO';
 
 const categories = ["All", "Diagnostics", "Critical Care", "Specialized Treatment", "General"];
 
 const ServicesPage = () => {
+  useSEO(
+    'Hospital Services',
+    'Explore the medical and clinical services offered at Fewa City Hospital Pokhara, including 24/7 emergency care, ICU, pathology lab, and surgical specialties.',
+    'clinical services, emergency care Pokhara, ICU, pathology lab Pokhara, surgery Pokhara'
+  );
+
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');

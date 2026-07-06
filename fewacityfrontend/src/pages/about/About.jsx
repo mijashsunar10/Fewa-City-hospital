@@ -2,8 +2,15 @@ import React from 'react';
 import AboutUs from '../home/AboutUs';
 import Stats from './Stats';
 import './About.css';
+import useSEO from '../../hooks/useSEO';
 
 const About = () => {
+  useSEO(
+    'About Us',
+    'Learn about Fewa City Hospital, Pokhara. Read our mission, vision, statistics, and dedication to excellence in patient-centric healthcare.',
+    'About Fewa City Hospital, hospital history, hospital mission, medical vision, Pokhara healthcare'
+  );
+
   return (
     <div className="about-page">
       {/* <div className="about-header">

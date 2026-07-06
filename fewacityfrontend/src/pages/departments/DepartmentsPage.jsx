@@ -5,8 +5,15 @@ import { Search, Info } from 'lucide-react';
 import axios from 'axios';
 import './DepartmentsPage.css';
 import API_BASE_URL from '../../config/api';
+import useSEO from '../../hooks/useSEO';
 
 const DepartmentsPage = () => {
+  useSEO(
+    'Medical Departments',
+    'Browse our specialized medical departments at Fewa City Hospital Pokhara, including Cardiology, Orthopedics, Urology, ENT, and Gynecology.',
+    'medical departments Pokhara, cardiology, orthopedics, urology, gynecology Pokhara'
+  );
+
   const { user } = useAuth();
   const navigate = useNavigate();
   const [departments, setDepartments] = useState([]);

@@ -5,6 +5,7 @@ import { Search, Calendar, Stethoscope, Heart, ShieldAlert, Award, Phone } from 
 import axios from 'axios';
 import './DoctorsPage.css';
 import API_BASE_URL from '../../config/api';
+import useSEO from '../../hooks/useSEO';
 
 const departments = [
   "All",
@@ -30,6 +31,12 @@ const departments = [
 ];
 
 const DoctorsPage = () => {
+  useSEO(
+    'Specialist Doctors',
+    'Meet the expert specialist doctors at Fewa City Hospital Pokhara. View schedules, qualifications, and book doctor appointments online.',
+    'doctors Pokhara, medical specialists, hospital doctors, book doctor Pokhara'
+  );
+
   const { user } = useAuth();
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);

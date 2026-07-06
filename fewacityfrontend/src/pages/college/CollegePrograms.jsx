@@ -1,8 +1,15 @@
 import React, { useEffect } from 'react';
 import { Award, BookOpen, Clock, Phone, GraduationCap, Users, Landmark, School, CheckCircle, Shield } from 'lucide-react';
 import './CollegePrograms.css';
+import useSEO from '../../hooks/useSEO';
 
 const CollegePrograms = () => {
+  useSEO(
+    'College Programme',
+    'Explore the Academic & College Programmes at Fewa City Hospital Pokhara, including CTEVT-affiliated clinical-focused PCL Nursing.',
+    'PCL Nursing Pokhara, CTEVT nursing Pokhara, medical college Pokhara, nursing education'
+  );
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
