@@ -6,6 +6,7 @@ import axios from 'axios';
 import './ServicesPage.css';
 import API_BASE_URL from '../../config/api';
 import useSEO from '../../hooks/useSEO';
+import { Skeleton, ServiceSkeleton } from '../../components/Skeleton';
 
 const categories = ["All", "Diagnostics", "Critical Care", "Specialized Treatment", "General"];
 
@@ -113,7 +114,7 @@ const ServicesPage = () => {
         {/* RESULTS SUMMARY */}
         <div className="results-summary">
           {loading ? (
-            <p>Loading clinical services...</p>
+            <Skeleton height="20px" width="160px" />
           ) : filteredServices.length > 0 ? (
             <p>Showing <strong>{filteredServices.length}</strong> medical services</p>
           ) : (
@@ -123,10 +124,7 @@ const ServicesPage = () => {
 
         {/* SERVICES GRID */}
         {loading ? (
-          <div className="services-loading-wrapper">
-            <div className="spinner"></div>
-            <p>Fetching clinical catalog...</p>
-          </div>
+          <ServiceSkeleton count={6} />
         ) : filteredServices.length > 0 ? (
           <div className="services-cards-grid">
             {filteredServices.map((service) => (

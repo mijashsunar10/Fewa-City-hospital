@@ -6,6 +6,7 @@ import axios from 'axios';
 import './DoctorsPage.css';
 import API_BASE_URL from '../../config/api';
 import useSEO from '../../hooks/useSEO';
+import { Skeleton, DoctorSkeleton } from '../../components/Skeleton';
 
 const departments = [
   "All",
@@ -153,10 +154,7 @@ const DoctorsPage = () => {
         {/* RESULTS SUMMARY */}
         <div className="results-summary">
           {loading ? (
-            <div className="flex items-center gap-3 text-slate-500 font-medium">
-              <div className="w-5 h-5 border-2 border-slate-300 border-t-emerald-600 rounded-full animate-spin"></div>
-              <span>Fetching medical specialists...</span>
-            </div>
+            <Skeleton height="20px" width="180px" />
           ) : filteredDoctors.length > 0 ? (
             <p>Showing <strong>{filteredDoctors.length}</strong> medical specialists</p>
           ) : (
@@ -165,7 +163,9 @@ const DoctorsPage = () => {
         </div>
 
         {/* TEAM GRID */}
-        {!loading && filteredDoctors.length > 0 ? (
+        {loading ? (
+          <DoctorSkeleton count={6} />
+        ) : filteredDoctors.length > 0 ? (
           <div className="doctors-cards-grid">
             {filteredDoctors.map((doctor, index) => {
               const docImg = doctor.image 
@@ -213,10 +213,19 @@ const DoctorsPage = () => {
               );
             })}
           </div>
-        ) : !loading ? (
+        ) : (
           <div className="doctors-no-results-card">
             <ShieldAlert className="no-results-icon" />
-            <h3>No Specialists Found</h3>
+            <h3>No Specialists Found</h3>git push origin main
+[main 2a65b52] fix: integrate dynamic SEO hook across all main website pages
+ 7 files changed, 49 insertions(+)
+Enumerating objects: 35, done.
+Counting objects: 100% (35/35), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (18/18), done.
+Writing objects: 100% (18/18), 2.92 KiB | 2.92 MiB/s, done.
+Total 18 (delta 13), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (13/13), completed with 13 local objects.
             <p>We couldn't find any specialist matching your search. Please check the spelling or try selecting another department filter.</p>
             <button
               onClick={() => {
@@ -228,7 +237,7 @@ const DoctorsPage = () => {
               Reset Filters
             </button>
           </div>
-        ) : null}
+        )}
       </div>
     </section>
   );

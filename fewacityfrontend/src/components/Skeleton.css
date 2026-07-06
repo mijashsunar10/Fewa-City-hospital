@@ -1,0 +1,99 @@
+/* Premium Pulse & Shimmer Animations */
+.skeleton-shimmer-container {
+  display: inline-block;
+  background: #e2e8f0;
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.skeleton-shimmer-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 20%,
+    rgba(255, 255, 255, 0.7) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 1.8s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Skeleton layouts matching our design system */
+.doctor-skeleton-grid, .service-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 30px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* Doctor card skeleton */
+.doctor-skeleton-card {
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.doctor-skeleton-image-wrapper {
+  height: 280px;
+  width: 100%;
+}
+
+.doctor-skeleton-info {
+  padding: 20px;
+}
+
+.doctor-skeleton-line {
+  margin-bottom: 10px;
+}
+
+/* Service card skeleton */
+.service-skeleton-card {
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.service-skeleton-accent {
+  height: 4px;
+  background: #cbd5e1;
+}
+
+.service-skeleton-image {
+  height: 200px;
+  width: 100%;
+}
+
+.service-skeleton-content {
+  padding: 24px;
+}
+
+/* Department tab item skeleton */
+.department-skeleton-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.department-skeleton-tab-item {
+  height: 60px;
+  border-radius: 8px;
+}
