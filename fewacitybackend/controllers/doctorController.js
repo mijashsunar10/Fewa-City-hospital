@@ -111,7 +111,7 @@ export const getDoctors = async (req, res) => {
 // @access  Private/Admin
 export const createDoctor = async (req, res) => {
   try {
-    const { name, qualification, department, phone } = req.body;
+    const { name, qualification, department, phone, experience, biography, schedule } = req.body;
 
     let imageUrl = '';
     // If image file was uploaded
@@ -128,7 +128,10 @@ export const createDoctor = async (req, res) => {
       qualification,
       department: deptId,
       phone: phone || '9765940555',
-      image: imageUrl
+      image: imageUrl,
+      experience: experience || '',
+      biography: biography || '',
+      schedule: schedule || ''
     });
 
     const savedDoctor = await doctor.save();
@@ -151,11 +154,14 @@ export const updateDoctor = async (req, res) => {
       return res.status(404).json({ message: 'Doctor record not found' });
     }
 
-    const { name, qualification, department, phone } = req.body;
+    const { name, qualification, department, phone, experience, biography, schedule } = req.body;
 
     doctor.name = name || doctor.name;
     doctor.qualification = qualification || doctor.qualification;
     doctor.phone = phone !== undefined ? phone : doctor.phone;
+    doctor.experience = experience !== undefined ? experience : doctor.experience;
+    doctor.biography = biography !== undefined ? biography : doctor.biography;
+    doctor.schedule = schedule !== undefined ? schedule : doctor.schedule;
 
     if (department !== undefined) {
       const deptId = await resolveDepartmentId(department);
@@ -191,5 +197,20 @@ export const deleteDoctor = async (req, res) => {
     res.status(200).json({ id: req.params.id, message: 'Doctor record successfully removed' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting doctor record', error: error.message });
+  }
+};
+
+// @desc    Get doctor by ID
+// @route   GET /api/doctors/:id
+// @access  Public
+export const getDoctorById = async (req, res) => {
+  try {
+    const doctor = await Doctor.findById(req.params.id).populate('department');
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor record not found' });
+    }
+    res.status(200).json(doctor);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving doctor details', error: error.message });
   }
 };

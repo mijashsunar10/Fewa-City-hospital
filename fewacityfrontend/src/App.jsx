@@ -5,6 +5,7 @@ import Home from './pages/Home'
 import About from './pages/about/About'
 import DepartmentsPage from './pages/departments/DepartmentsPage'
 import DoctorsPage from './pages/doctors/DoctorsPage'
+import DoctorDetails from './pages/doctors/DoctorDetails'
 import CollegePrograms from './pages/college/CollegePrograms'
 import ServicesPage from './pages/services/ServicesPage'
 import ContactUs from './pages/contact/ContactUs'
@@ -38,6 +39,7 @@ function AppContent() {
           <Route path="/about-us" element={<About />} />
           <Route path="/departments" element={<DepartmentsPage />} />
           <Route path="/doctors" element={<DoctorsPage />} />
+          <Route path="/doctors/:id" element={<DoctorDetails />} />
           <Route path="/college-program" element={<CollegePrograms />} />
           <Route path="/pcl-nursing" element={<CollegePrograms />} />
           <Route path="/services" element={<ServicesPage />} />

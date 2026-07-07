@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Search, Calendar, Stethoscope, Heart, ShieldAlert, Award, Phone } from 'lucide-react';
 import axios from 'axios';
@@ -177,7 +177,7 @@ const DoctorsPage = () => {
 
               return (
                 <div key={doctor._id || index} className="doctor-item-card">
-                  <div className="doctor-card-img-wrapper">
+                  <Link to={`/doctors/${doctor._id}`} className="doctor-card-img-wrapper block decoration-0">
                     <img
                       src={docImg}
                       alt={`${doctor.name} - ${docPosition}`}
@@ -187,13 +187,22 @@ const DoctorsPage = () => {
                       }}
                     />
                     <div className="doctor-dept-tag">{docDept}</div>
-                  </div>
+                  </Link>
                   <div className="doctor-card-details">
-                    <h3>{doctor.name}</h3>
+                    <Link to={`/doctors/${doctor._id}`} className="hover:text-emerald-700 transition" style={{ textDecoration: 'none' }}>
+                      <h3 style={{ margin: '0 0 6px 0' }}>{doctor.name}</h3>
+                    </Link>
                     <span className="doctor-position-text">{docPosition}</span>
                     <div className="doctor-divider"></div>
                     
                     <div className="doctor-actions">
+                      <Link
+                        to={`/doctors/${doctor._id}`}
+                        className="doctor-book-whatsapp-btn justify-center border-0 cursor-pointer text-center bg-slate-100 hover:bg-slate-200 text-slate-700 shadow-none"
+                        style={{ flexGrow: 1, textDecoration: 'none', padding: '12px 10px' }}
+                      >
+                        Profile
+                      </Link>
                       <button
                         onClick={() => {
                           if (user) {
@@ -202,10 +211,11 @@ const DoctorsPage = () => {
                             navigate('/register');
                           }
                         }}
-                        className="doctor-book-whatsapp-btn w-full justify-center border-0 cursor-pointer"
+                        className="doctor-book-whatsapp-btn justify-center border-0 cursor-pointer"
+                        style={{ flexGrow: 1.5 }}
                       >
                         <Calendar className="btn-icon" />
-                        Book Appointment
+                        Book
                       </button>
                     </div>
                   </div>

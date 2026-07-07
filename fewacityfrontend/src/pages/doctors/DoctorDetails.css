@@ -1,0 +1,282 @@
+.doctor-details-section {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* HERO HEADER */
+.doc-details-hero {
+  position: relative;
+  background-image: url('https://fch.com.np/wp-content/uploads/2026/02/anaesthesia1.jpg');
+  background-size: cover;
+  background-position: center;
+  color: white;
+  padding: 80px 20px 60px 20px;
+  overflow: hidden;
+}
+
+.doc-details-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(21, 102, 25, 0.95) 0%, rgba(15, 77, 20, 0.85) 100%);
+  z-index: 1;
+}
+
+.doc-details-hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.doc-breadcrumbs {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-bottom: 15px;
+}
+
+.doc-breadcrumbs a {
+  color: white;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.doc-breadcrumbs a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.doc-details-hero-content h1 {
+  font-size: 40px;
+  font-weight: 800;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.5px;
+}
+
+/* MAIN LAYOUT */
+.doc-details-container {
+  max-width: 1200px;
+  margin: -40px auto 0 auto;
+  padding: 0 20px;
+  position: relative;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 40px;
+}
+
+/* LEFT COLUMN - CARD */
+.doc-profile-sticky-card {
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04), 0 1px 8px rgba(0, 0, 0, 0.02);
+  border: 1px solid #f1f5f9;
+  position: sticky;
+  top: 100px;
+  height: fit-content;
+}
+
+.doc-profile-img-wrap {
+  width: 100%;
+  aspect-ratio: 1/1;
+  overflow: hidden;
+  background-color: #f1f5f9;
+  border-bottom: 4px solid #156619;
+}
+
+.doc-profile-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.doc-profile-quick-info {
+  padding: 25px;
+}
+
+.doc-profile-dept-tag {
+  display: inline-block;
+  background-color: rgba(21, 102, 25, 0.1);
+  color: #156619;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 14px;
+  border-radius: 50px;
+  margin-bottom: 15px;
+}
+
+.doc-profile-qual {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.doc-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 20px;
+  margin-bottom: 25px;
+}
+
+.doc-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.doc-contact-icon {
+  width: 20px;
+  height: 20px;
+  color: #156619;
+  flex-shrink: 0;
+}
+
+.doc-contact-label {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.doc-contact-value {
+  color: #1e293b;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.doc-details-book-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #156619;
+  color: white;
+  padding: 14px 20px;
+  border-radius: 14px;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(21, 102, 25, 0.15);
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.doc-details-book-btn:hover {
+  background-color: #0f4d14;
+  box-shadow: 0 6px 16px rgba(21, 102, 25, 0.25);
+  transform: translateY(-2px);
+}
+
+/* RIGHT COLUMN - CONTENT */
+.doc-details-content-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.doc-details-card {
+  background: white;
+  border-radius: 24px;
+  padding: 35px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f1f5f9;
+}
+
+.doc-details-card h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 20px 0;
+  position: relative;
+  padding-bottom: 12px;
+}
+
+.doc-details-card h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  height: 3px;
+  background-color: #156619;
+  border-radius: 2px;
+}
+
+.doc-details-card p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #475569;
+  margin: 0 0 15px 0;
+}
+
+.doc-details-card p:last-child {
+  margin-bottom: 0;
+}
+
+/* SCHEDULE LIST */
+.doc-schedule-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.doc-schedule-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background-color: #f8fafc;
+  border-radius: 12px;
+  font-size: 15px;
+  border-left: 4px solid #e2e8f0;
+}
+
+.doc-schedule-row.active {
+  border-left-color: #156619;
+  background-color: rgba(21, 102, 25, 0.02);
+}
+
+.schedule-day {
+  font-weight: 600;
+  color: #334155;
+}
+
+.schedule-time {
+  font-weight: 500;
+  color: #156619;
+}
+
+/* RESPONSIVE */
+@media (max-width: 992px) {
+  .doc-details-container {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .doc-profile-sticky-card {
+    position: relative;
+    top: 0;
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .doc-details-hero h1 {
+    font-size: 30px;
+  }
+  .doc-details-card {
+    padding: 24px;
+  }
+}

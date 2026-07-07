@@ -53,7 +53,7 @@ const DoctorsSection = () => {
 
               return (
                 <div className="home-doctor-card" key={doc._id || idx}>
-                  <div className="home-doctor-img-wrapper">
+                  <Link to={`/doctors/${doc._id}`} className="home-doctor-img-wrapper block decoration-0">
                     <img 
                       src={docImg} 
                       alt={doc.name} 
@@ -62,11 +62,20 @@ const DoctorsSection = () => {
                         e.target.src = "https://fch.com.np/wp-content/uploads/2026/03/docotorlast.jpg";
                       }}
                     />
-                  </div>
+                  </Link>
                   <div className="home-doctor-info">
-                    <h3>{doc.name}</h3>
+                    <Link to={`/doctors/${doc._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <h3 className="hover:text-emerald-700 transition" style={{ margin: '0 0 6px 0' }}>{doc.name}</h3>
+                    </Link>
                     <span className="position">{docPosition}</span>
-                    <div className="home-doctor-actions">
+                    <div className="home-doctor-actions" style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
+                      <Link 
+                        to={`/doctors/${doc._id}`}
+                        className="home-doctor-book-btn border-0 cursor-pointer text-center"
+                        style={{ flexGrow: 1, backgroundColor: '#f1f5f9', color: '#475569', padding: '10px 0', textDecoration: 'none' }}
+                      >
+                        Profile
+                      </Link>
                       <button 
                         onClick={() => {
                           if (user) {
@@ -75,10 +84,11 @@ const DoctorsSection = () => {
                             navigate('/register');
                           }
                         }}
-                        className="home-doctor-book-btn border-0 cursor-pointer w-full"
+                        className="home-doctor-book-btn border-0 cursor-pointer"
+                        style={{ flexGrow: 1.2, padding: '10px 0' }}
                       >
                         <Calendar className="btn-icon" />
-                        Book Appointment
+                        Book
                       </button>
                     </div>
                   </div>

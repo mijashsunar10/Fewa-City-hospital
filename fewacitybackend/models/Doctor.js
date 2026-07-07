@@ -24,6 +24,18 @@ const doctorSchema = new mongoose.Schema(
     phone: {
       type: String,
       default: '9765940555', // Default WhatsApp number if none is given
+    },
+    experience: {
+      type: String,
+      default: '',
+    },
+    biography: {
+      type: String,
+      default: '',
+    },
+    schedule: {
+      type: String,
+      default: '',
     }
   },
   {
