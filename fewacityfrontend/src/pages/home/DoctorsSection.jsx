@@ -78,10 +78,11 @@ const DoctorsSection = () => {
                       </Link>
                       <button 
                         onClick={() => {
+                          const targetUrl = `/patient/dashboard?tab=book&deptName=${encodeURIComponent(docDept)}&docId=${doc._id}`;
                           if (user) {
-                            navigate(`/patient/dashboard?tab=book&deptName=${docDept}&docId=${doc._id}`);
+                            navigate(targetUrl);
                           } else {
-                            navigate('/register');
+                            navigate(`/login?redirect=${encodeURIComponent(targetUrl)}`);
                           }
                         }}
                         className="home-doctor-book-btn border-0 cursor-pointer"

@@ -47,10 +47,11 @@ const DoctorDetails = () => {
 
   const handleBookAppointment = () => {
     const docDept = doctor?.department?.title?.replace(' Department', '') || doctor?.department || '';
+    const targetUrl = `/patient/dashboard?tab=book&deptName=${encodeURIComponent(docDept)}&docId=${doctor?._id}`;
     if (user) {
-      navigate(`/patient/dashboard?tab=book&deptName=${encodeURIComponent(docDept)}&docId=${doctor._id}`);
+      navigate(targetUrl);
     } else {
-      navigate('/register');
+      navigate(`/login?redirect=${encodeURIComponent(targetUrl)}`);
     }
   };
 

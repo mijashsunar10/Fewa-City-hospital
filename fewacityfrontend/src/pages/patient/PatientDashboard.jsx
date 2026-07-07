@@ -82,25 +82,34 @@ const PatientDashboard = () => {
   const fetchData = async () => {
     if (!token) return;
     setIsLoadingDetails(true);
+    const config = {
+      headers: { Authorization: `Bearer ${token}` }
+    };
+
+    // Load each resource independently so that a failure in one (e.g. rate limiting on appointments)
+    // does not block others (doctors and departments lists) from loading successfully.
     try {
-      const config = {
-        headers: { Authorization: `Bearer ${token}` }
-      };
-
-      const [apptRes, docsRes, deptsRes] = await Promise.all([
-        axios.get(API_BASE_URL + '/api/appointments/my', config),
-        axios.get(API_BASE_URL + '/api/doctors'),
-        axios.get(API_BASE_URL + '/api/departments')
-      ]);
-
+      const apptRes = await axios.get(API_BASE_URL + '/api/appointments/my', config);
       setAppointments(apptRes.data);
+    } catch (err) {
+      console.error('Error fetching patient appointments:', err);
+    }
+
+    try {
+      const docsRes = await axios.get(API_BASE_URL + '/api/doctors');
       setDoctors(docsRes.data);
+    } catch (err) {
+      console.error('Error fetching doctors roster:', err);
+    }
+
+    try {
+      const deptsRes = await axios.get(API_BASE_URL + '/api/departments');
       setDepartments(deptsRes.data);
     } catch (err) {
-      console.error('Error fetching dashboard details:', err);
-    } finally {
-      setIsLoadingDetails(false);
+      console.error('Error fetching departments list:', err);
     }
+
+    setIsLoadingDetails(false);
   };
 
   useEffect(() => {
@@ -235,11 +244,25 @@ const PatientDashboard = () => {
   }
 
   // Filter doctors based on selected department slug or ID
-  // Our Doctor schema has department as a String matching the Department slug or title
   const filteredDoctors = doctors.filter(doc => {
     if (!bookingDept) return false;
+    
+    // Check by ID if doctor.department is populated as an object or is a raw ID string
+    const docDeptId = doc.department?._id || doc.department;
+    if (docDeptId && docDeptId.toString() === bookingDept.toString()) {
+      return true;
+    }
+    
+    // Fallback comparison by department title or slug matching
+    const docDeptTitle = doc.department?.title || doc.department || '';
     const selectedDept = departments.find(d => d._id === bookingDept);
-    return selectedDept ? (doc.department.toLowerCase() === selectedDept.title.toLowerCase() || doc.department.toLowerCase() === selectedDept.slug.toLowerCase()) : false;
+    if (!selectedDept) return false;
+    
+    const cleanDocTitle = docDeptTitle.toString().toLowerCase().replace(' department', '').trim();
+    const cleanSelectedTitle = selectedDept.title.toLowerCase().replace(' department', '').trim();
+    const cleanSelectedSlug = selectedDept.slug.toLowerCase().replace(' department', '').trim();
+    
+    return cleanDocTitle === cleanSelectedTitle || cleanDocTitle === cleanSelectedSlug;
   });
 
   // Overview stats calculation

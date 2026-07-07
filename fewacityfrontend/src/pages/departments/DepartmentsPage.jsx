@@ -80,7 +80,15 @@ const DepartmentsPage = () => {
     return departments.map(dept => {
       const deptClean = cleanStr(dept.title);
       const matchedDocs = doctors.filter(doc => {
-        const docDeptClean = cleanStr(doc.department);
+        // Match by ObjectId if doctor.department is populated as an object or is a raw ID string
+        const docDeptId = doc.department?._id || doc.department;
+        if (docDeptId && docDeptId.toString() === dept._id.toString()) {
+          return true;
+        }
+
+        // Fallback comparison using name strings
+        const docDeptText = doc.department?.title || doc.department || '';
+        const docDeptClean = cleanStr(docDeptText);
         return (
           docDeptClean === deptClean ||
           docDeptClean === dept.slug ||
@@ -243,10 +251,11 @@ const DepartmentsPage = () => {
                           <button 
                             className="book-btn w-full text-center border-0 cursor-pointer" 
                             onClick={() => {
+                              const targetUrl = `/patient/dashboard?tab=book&deptName=${encodeURIComponent(currentDept.title)}&docId=${doc._id}`;
                               if (user) {
-                                navigate(`/patient/dashboard?tab=book&deptName=${currentDept.title}&docId=${doc._id}`);
+                                navigate(targetUrl);
                               } else {
-                                navigate('/register');
+                                navigate(`/login?redirect=${encodeURIComponent(targetUrl)}`);
                               }
                             }}
                           >

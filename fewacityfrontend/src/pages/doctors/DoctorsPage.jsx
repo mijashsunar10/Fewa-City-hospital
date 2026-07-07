@@ -205,10 +205,11 @@ const DoctorsPage = () => {
                       </Link>
                       <button
                         onClick={() => {
+                          const targetUrl = `/patient/dashboard?tab=book&deptName=${encodeURIComponent(docDept)}&docId=${doctor._id}`;
                           if (user) {
-                            navigate(`/patient/dashboard?tab=book&deptName=${docDept}&docId=${doctor._id}`);
+                            navigate(targetUrl);
                           } else {
-                            navigate('/register');
+                            navigate(`/login?redirect=${encodeURIComponent(targetUrl)}`);
                           }
                         }}
                         className="doctor-book-whatsapp-btn justify-center border-0 cursor-pointer"

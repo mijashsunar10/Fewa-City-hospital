@@ -51,7 +51,12 @@ const Header = () => {
           </div>
 
           <div className="flex gap-8">
-            <QuickAction icon="fa-calendar-check" text1="Request" text2="Appointment" href={user ? "/patient/dashboard?tab=book" : "/login"} />
+            <QuickAction 
+              icon="fa-calendar-check" 
+              text1="Request" 
+              text2="Appointment" 
+              href={user ? "/patient/dashboard?tab=book" : `/login?redirect=${encodeURIComponent("/patient/dashboard?tab=book")}`} 
+            />
             <QuickAction icon="fa-user-doctor" text1="Doctor" text2="Consultation" href="/departments" />
             <QuickAction icon="fa-ambulance" text1="Ambulance" text2="+977 9842285269" href="tel:+9779842285269" />
             <QuickAction icon="fa-clock" text1="24 / 7" text2="Service" href="/services" />

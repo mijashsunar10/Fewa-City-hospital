@@ -53,11 +53,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(sanitizeInput);
 
-// Apply rate limiting
-app.use('/api', generalLimiter);
-app.use('/api/auth', authLimiter);
-app.use('/api/messages', formLimiter);
-app.use('/api/appointments', formLimiter);
+// Apply rate limiting (only in production to avoid blocking local testing)
+if (process.env.NODE_ENV === 'production') {
+  app.use('/api', generalLimiter);
+  app.use('/api/auth', authLimiter);
+  app.post('/api/messages', formLimiter);
+  app.post('/api/appointments', formLimiter);
+  app.put('/api/appointments/:id', formLimiter);
+}
 
 // HTTP Request Logging
 if (process.env.NODE_ENV === 'development') {

@@ -12,16 +12,22 @@ const PatientLogin = () => {
   const { login, user, loading } = useAuth();
   const navigate = useNavigate();
 
+  // Parse redirect query parameter
+  const queryParams = new URLSearchParams(window.location.search);
+  const redirectUrl = queryParams.get('redirect');
+
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
       if (user.role === 'admin') {
         navigate('/admin/dashboard');
+      } else if (redirectUrl) {
+        navigate(redirectUrl);
       } else {
         navigate('/patient/dashboard');
       }
     }
-  }, [user, navigate]);
+  }, [user, navigate, redirectUrl]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,8 +38,11 @@ const PatientLogin = () => {
     setIsSubmitting(false);
 
     if (result.success) {
-      // The useEffect will handle the redirect, but as a fallback:
-      navigate('/patient/dashboard');
+      if (redirectUrl) {
+        navigate(redirectUrl);
+      } else {
+        navigate('/patient/dashboard');
+      }
     } else {
       setErrorMsg(result.error);
     }
@@ -117,7 +126,10 @@ const PatientLogin = () => {
         <div className="text-center text-sm text-slate-600 pt-4 border-t border-slate-100">
           <p>
             New patient?{' '}
-            <Link to="/register" className="font-semibold text-[#156619] hover:text-[#0f4d12]">
+            <Link 
+              to={redirectUrl ? `/register?redirect=${encodeURIComponent(redirectUrl)}` : "/register"} 
+              className="font-semibold text-[#156619] hover:text-[#0f4d12]"
+            >
               Create an Account
             </Link>
           </p>

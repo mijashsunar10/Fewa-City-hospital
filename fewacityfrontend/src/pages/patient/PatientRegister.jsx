@@ -15,6 +15,10 @@ const PatientRegister = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  // Parse redirect query parameter
+  const queryParams = new URLSearchParams(window.location.search);
+  const redirectUrl = queryParams.get('redirect');
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
@@ -37,7 +41,11 @@ const PatientRegister = () => {
     if (result.success) {
       setSuccessMsg('Account registered successfully! Redirecting to dashboard...');
       setTimeout(() => {
-        navigate('/patient/dashboard');
+        if (redirectUrl) {
+          navigate(redirectUrl);
+        } else {
+          navigate('/patient/dashboard');
+        }
       }, 1500);
     } else {
       setErrorMsg(result.error);

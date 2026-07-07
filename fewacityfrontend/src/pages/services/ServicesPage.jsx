@@ -149,10 +149,11 @@ const ServicesPage = () => {
                   <div className="service-card-actions">
                     <button
                       onClick={() => {
+                        const targetUrl = '/patient/dashboard?tab=book';
                         if (user) {
-                          navigate('/patient/dashboard?tab=book');
+                          navigate(targetUrl);
                         } else {
-                          navigate('/register');
+                          navigate(`/login?redirect=${encodeURIComponent(targetUrl)}`);
                         }
                       }}
                       className="service-inquiry-btn border-0 cursor-pointer w-full"
