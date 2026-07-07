@@ -44,10 +44,19 @@ const AdminDepartments = () => {
     return str.toLowerCase().replace(' department', '').replace('s', '').trim();
   };
 
-  const getDepartmentSpecialists = (deptTitle) => {
-    const deptClean = cleanStr(deptTitle);
+  const getDepartmentSpecialists = (dept) => {
+    if (!dept) return [];
+    const deptClean = cleanStr(dept.title);
     return doctorsList.filter(doc => {
-      const docDeptClean = cleanStr(doc.department);
+      // Match by ObjectId if doctor.department is populated as an object or is a raw ID string
+      const docDeptId = doc.department?._id || doc.department;
+      if (docDeptId && docDeptId.toString() === dept._id.toString()) {
+        return true;
+      }
+
+      // Fallback to name-based string match
+      const docDeptText = doc.department?.title || doc.department || '';
+      const docDeptClean = cleanStr(docDeptText);
       return (
         docDeptClean === deptClean ||
         docDeptClean.includes(deptClean) ||
@@ -138,7 +147,15 @@ const AdminDepartments = () => {
     const deptClean = cleanStr(dept.title);
     const selectedDocIds = doctorsList
       .filter(doc => {
-        const docDeptClean = cleanStr(doc.department);
+        // Match by ObjectId if doctor.department is populated as an object or is a raw ID string
+        const docDeptId = doc.department?._id || doc.department;
+        if (docDeptId && docDeptId.toString() === dept._id.toString()) {
+          return true;
+        }
+
+        // Fallback string match
+        const docDeptText = doc.department?.title || doc.department || '';
+        const docDeptClean = cleanStr(docDeptText);
         return (
           docDeptClean === deptClean ||
           docDeptClean.includes(deptClean) ||
@@ -415,12 +432,12 @@ const AdminDepartments = () => {
                     </td>
                     <td>
                       <div className="flex flex-wrap gap-1" style={{ maxWidth: '200px' }}>
-                        {getDepartmentSpecialists(dept.title).map((doc) => (
+                        {getDepartmentSpecialists(dept).map((doc) => (
                           <span key={doc._id} className="doctor-table-dept-badge" style={{ margin: '2px', display: 'inline-block', backgroundColor: '#e2e8f0', color: '#1e293b', fontWeight: '500' }}>
                             {doc.name}
                           </span>
                         ))}
-                        {getDepartmentSpecialists(dept.title).length === 0 && (
+                        {getDepartmentSpecialists(dept).length === 0 && (
                           <span className="text-slate-400 text-xs italic">No specialists</span>
                         )}
                       </div>
