@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Search, Info } from 'lucide-react';
 import axios from 'axios';
@@ -204,7 +204,12 @@ const DepartmentsPage = () => {
             <div className="dept-panel active">
               <div className="dept-top">
                 <div className="dept-text">
-                  <h2>{currentDept.title}</h2>
+                  <div className="dept-title-header-wrapper" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '15px', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+                    <h2 style={{ margin: 0 }}>{currentDept.title}</h2>
+                    <Link to={`/departments/${currentDept.slug}`} className="view-full-dept-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#2563eb', color: '#ffffff', padding: '8px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: '600', textDecoration: 'none', transition: 'all 0.2s' }}>
+                      View Full Page &rarr;
+                    </Link>
+                  </div>
                   <p>{currentDept.description}</p>
                   {currentDept.extra && <p>{currentDept.extra}</p>}
                   {currentDept.points && currentDept.points.length > 0 && (

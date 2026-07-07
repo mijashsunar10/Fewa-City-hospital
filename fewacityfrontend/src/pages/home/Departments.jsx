@@ -40,7 +40,7 @@ const Departments = () => {
             </div>
           ) : departments.length > 0 ? (
             departments.map((dept) => (
-              <Link key={dept._id} to={`/departments#${dept.slug}`}>
+              <Link key={dept._id} to={`/departments/${dept.slug}`}>
                 <div className="department-card">{dept.title.replace(' Department', '')}</div>
               </Link>
             ))
