@@ -89,6 +89,7 @@ const DepartmentsPage = () => {
         // Fallback comparison using name strings
         const docDeptText = doc.department?.title || doc.department || '';
         const docDeptClean = cleanStr(docDeptText);
+        if (!docDeptClean) return false;
         return (
           docDeptClean === deptClean ||
           docDeptClean === dept.slug ||

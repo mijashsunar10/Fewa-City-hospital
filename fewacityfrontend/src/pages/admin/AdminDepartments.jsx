@@ -57,6 +57,7 @@ const AdminDepartments = () => {
       // Fallback to name-based string match
       const docDeptText = doc.department?.title || doc.department || '';
       const docDeptClean = cleanStr(docDeptText);
+      if (!docDeptClean) return false;
       return (
         docDeptClean === deptClean ||
         docDeptClean.includes(deptClean) ||
@@ -156,6 +157,7 @@ const AdminDepartments = () => {
         // Fallback string match
         const docDeptText = doc.department?.title || doc.department || '';
         const docDeptClean = cleanStr(docDeptText);
+        if (!docDeptClean) return false;
         return (
           docDeptClean === deptClean ||
           docDeptClean.includes(deptClean) ||
