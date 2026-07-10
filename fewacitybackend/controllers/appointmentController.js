@@ -13,6 +13,27 @@ export const createAppointment = async (req, res) => {
       return res.status(400).json({ message: 'Please select a doctor, department, date, and time slot.' });
     }
 
+    // Prevent double booking
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const alreadyBooked = await Appointment.findOne({
+      doctor,
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay
+      },
+      timeSlot,
+      status: { $ne: 'Cancelled' }
+    });
+
+    if (alreadyBooked) {
+      return res.status(400).json({ message: 'This slot is already booked for this doctor. Please choose a different slot.' });
+    }
+
     const newAppointment = new Appointment({
       patient: req.user.id,
       doctor,
@@ -114,5 +135,38 @@ export const updateAppointment = async (req, res) => {
     res.status(200).json(populated);
   } catch (error) {
     res.status(500).json({ message: 'Failed to update appointment', error: error.message });
+  }
+};
+
+// @desc    Get all booked time slots for a doctor on a specific date
+// @route   GET /api/appointments/booked-slots
+// @access  Private (Patient)
+export const getBookedSlots = async (req, res) => {
+  try {
+    const { doctorId, date } = req.query;
+
+    if (!doctorId || !date) {
+      return res.status(400).json({ message: 'Please provide doctorId and date query parameters.' });
+    }
+
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const appointments = await Appointment.find({
+      doctor: doctorId,
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay
+      },
+      status: { $ne: 'Cancelled' }
+    }).select('timeSlot');
+
+    const bookedSlots = appointments.map(appt => appt.timeSlot);
+    res.status(200).json(bookedSlots);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to retrieve booked slots', error: error.message });
   }
 };

@@ -111,7 +111,18 @@ export const getDoctors = async (req, res) => {
 // @access  Private/Admin
 export const createDoctor = async (req, res) => {
   try {
-    const { name, qualification, department, phone, experience, biography, schedule } = req.body;
+    const { name, qualification, department, phone, experience, biography, schedule, workingStart, workingEnd } = req.body;
+
+    let availableDaysArray = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    if (req.body.availableDays) {
+      try {
+        availableDaysArray = typeof req.body.availableDays === 'string'
+          ? JSON.parse(req.body.availableDays)
+          : req.body.availableDays;
+      } catch (e) {
+        availableDaysArray = req.body.availableDays.split(',').map(d => d.trim()).filter(Boolean);
+      }
+    }
 
     let imageUrl = '';
     // If image file was uploaded
@@ -131,7 +142,10 @@ export const createDoctor = async (req, res) => {
       image: imageUrl,
       experience: experience || '',
       biography: biography || '',
-      schedule: schedule || ''
+      schedule: schedule || '',
+      availableDays: availableDaysArray,
+      workingStart: workingStart || '09:00 AM',
+      workingEnd: workingEnd || '05:00 PM'
     });
 
     const savedDoctor = await doctor.save();
@@ -154,7 +168,7 @@ export const updateDoctor = async (req, res) => {
       return res.status(404).json({ message: 'Doctor record not found' });
     }
 
-    const { name, qualification, department, phone, experience, biography, schedule } = req.body;
+    const { name, qualification, department, phone, experience, biography, schedule, workingStart, workingEnd } = req.body;
 
     doctor.name = name || doctor.name;
     doctor.qualification = qualification || doctor.qualification;
@@ -162,6 +176,18 @@ export const updateDoctor = async (req, res) => {
     doctor.experience = experience !== undefined ? experience : doctor.experience;
     doctor.biography = biography !== undefined ? biography : doctor.biography;
     doctor.schedule = schedule !== undefined ? schedule : doctor.schedule;
+    doctor.workingStart = workingStart !== undefined ? workingStart : doctor.workingStart;
+    doctor.workingEnd = workingEnd !== undefined ? workingEnd : doctor.workingEnd;
+
+    if (req.body.availableDays !== undefined) {
+      try {
+        doctor.availableDays = typeof req.body.availableDays === 'string'
+          ? JSON.parse(req.body.availableDays)
+          : req.body.availableDays;
+      } catch (e) {
+        doctor.availableDays = req.body.availableDays.split(',').map(d => d.trim()).filter(Boolean);
+      }
+    }
 
     if (department !== undefined) {
       const deptId = await resolveDepartmentId(department);

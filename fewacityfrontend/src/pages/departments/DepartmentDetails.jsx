@@ -44,7 +44,13 @@ const DepartmentDetails = () => {
   // Clean title for comparison
   const cleanStr = (str) => {
     if (!str) return '';
-    return str.toLowerCase().replace(' department', '').replace('s', '').trim();
+    return str
+      .toString()
+      .toLowerCase()
+      .replace(/departments?/gi, '')
+      .replace(/s\b/gi, '')
+      .replace(/[^a-z0-9]/gi, '')
+      .trim();
   };
 
   // Find doctors assigned to this department

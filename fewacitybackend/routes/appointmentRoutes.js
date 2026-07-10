@@ -5,6 +5,7 @@ import {
   cancelAppointment,
   getAppointments,
   updateAppointment,
+  getBookedSlots,
 } from '../controllers/appointmentController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -14,6 +15,7 @@ const router = express.Router();
 router.post('/', protect, createAppointment);
 router.get('/my', protect, getPatientAppointments);
 router.put('/:id/cancel', protect, cancelAppointment);
+router.get('/booked-slots', protect, getBookedSlots);
 
 // Admin-only routes
 router.get('/', protect, admin, getAppointments);

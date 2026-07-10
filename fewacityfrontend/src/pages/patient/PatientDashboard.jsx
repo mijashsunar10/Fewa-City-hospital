@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -43,15 +43,84 @@ const PatientDashboard = () => {
   const [profileError, setProfileError] = useState('');
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
-  // Time Slots
-  const timeSlots = [
-    '09:00 AM - 10:00 AM',
-    '10:00 AM - 11:00 AM',
-    '11:00 AM - 12:00 PM',
-    '01:00 PM - 02:00 PM',
-    '02:00 PM - 03:00 PM',
-    '03:00 PM - 04:00 PM'
+  // 30-minute Time Slots
+  const ALL_30MIN_SLOTS = [
+    "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+    "12:00 PM", "12:30 PM", "01:00 PM", "01:30 PM", "02:00 PM", "02:30 PM",
+    "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM"
   ];
+
+  const [bookedSlots, setBookedSlots] = useState([]);
+  const [isFetchingSlots, setIsFetchingSlots] = useState(false);
+  const [slotCheckError, setSlotCheckError] = useState('');
+
+  // Fetch occupied slots for selected doctor and date
+  useEffect(() => {
+    const getOccupiedSlots = async () => {
+      if (!bookingDoc || !bookingDate || !token) {
+        setBookedSlots([]);
+        return;
+      }
+      try {
+        setIsFetchingSlots(true);
+        setSlotCheckError('');
+        const config = {
+          headers: { Authorization: `Bearer ${token}` }
+        };
+        const res = await axios.get(
+          `${API_BASE_URL}/api/appointments/booked-slots?doctorId=${bookingDoc}&date=${bookingDate}`,
+          config
+        );
+        setBookedSlots(res.data);
+      } catch (err) {
+        console.error('Error checking booked slots:', err);
+        setSlotCheckError('Failed to fetch slot occupancy status.');
+      } finally {
+        setIsFetchingSlots(false);
+      }
+    };
+    getOccupiedSlots();
+  }, [bookingDoc, bookingDate, token]);
+
+  const selectedDoctorObj = useMemo(() => {
+    return doctors.find(d => d._id === bookingDoc);
+  }, [doctors, bookingDoc]);
+
+  const selectedDayOfWeek = useMemo(() => {
+    if (!bookingDate) return '';
+    const parts = bookingDate.split('-');
+    const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[dateObj.getDay()];
+  }, [bookingDate]);
+
+  const isDoctorAvailableOnDay = useMemo(() => {
+    if (!selectedDoctorObj || !selectedDayOfWeek) return true;
+    const days = selectedDoctorObj.availableDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    return days.includes(selectedDayOfWeek);
+  }, [selectedDoctorObj, selectedDayOfWeek]);
+
+  const timeToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
+    const [time, modifier] = timeStr.split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
+    if (hours === 12) {
+      hours = modifier === 'AM' ? 0 : 12;
+    } else if (modifier === 'PM') {
+      hours += 12;
+    }
+    return hours * 60 + minutes;
+  };
+
+  const filteredSlots = useMemo(() => {
+    if (!selectedDoctorObj) return ALL_30MIN_SLOTS;
+    const startMin = timeToMinutes(selectedDoctorObj.workingStart || '09:00 AM');
+    const endMin = timeToMinutes(selectedDoctorObj.workingEnd || '05:00 PM');
+    return ALL_30MIN_SLOTS.filter(slot => {
+      const slotMin = timeToMinutes(slot);
+      return slotMin >= startMin && slotMin < endMin;
+    });
+  }, [selectedDoctorObj]);
 
   // Auth Guard
   useEffect(() => {
@@ -124,11 +193,22 @@ const PatientDashboard = () => {
       const docId = searchParams.get('docId');
       
       if (deptName) {
-        const cleanName = deptName.toLowerCase().replace(' department', '').replace('s', '').trim();
+        const cleanStringForMatching = (str) => {
+          if (!str) return '';
+          return str
+            .toString()
+            .toLowerCase()
+            .replace(/departments?/gi, '')
+            .replace(/s\b/gi, '')
+            .replace(/[^a-z0-9]/gi, '')
+            .trim();
+        };
+
+        const cleanQuery = cleanStringForMatching(deptName);
         const matchedDept = departments.find(d => {
-          const titleClean = d.title.toLowerCase().replace(' department', '').replace('s', '').trim();
-          const slugClean = d.slug.toLowerCase().replace(' department', '').replace('s', '').trim();
-          return titleClean === cleanName || slugClean === cleanName || titleClean.includes(cleanName) || cleanName.includes(titleClean);
+          const cleanTitle = cleanStringForMatching(d.title);
+          const cleanSlug = cleanStringForMatching(d.slug);
+          return cleanTitle === cleanQuery || cleanSlug === cleanQuery || cleanTitle.includes(cleanQuery) || cleanQuery.includes(cleanTitle);
         });
 
         if (matchedDept) {
@@ -579,25 +659,70 @@ const PatientDashboard = () => {
                         min={new Date().toISOString().split('T')[0]}
                         className="block w-full border border-slate-200 rounded-lg p-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#156619]"
                         value={bookingDate}
-                        onChange={(e) => setBookingDate(e.target.value)}
+                        onChange={(e) => {
+                          setBookingDate(e.target.value);
+                          setBookingSlot(''); // Reset selected slot when date changes
+                        }}
                       />
                     </div>
 
-                    <div>
+                    <div className="sm:col-span-2">
                       <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                         Preferred Time Slot *
                       </label>
-                      <select
-                        required
-                        className="block w-full border border-slate-200 rounded-lg p-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#156619]"
-                        value={bookingSlot}
-                        onChange={(e) => setBookingSlot(e.target.value)}
-                      >
-                        <option value="">-- Choose Time Preference --</option>
-                        {timeSlots.map(slot => (
-                          <option key={slot} value={slot}>{slot}</option>
-                        ))}
-                      </select>
+                      
+                      {!bookingDoc || !bookingDate ? (
+                        <div className="bg-slate-50 border border-dashed border-slate-200 text-center py-6 text-sm text-slate-500 rounded-xl">
+                          Please select a specialist doctor and preferred date first.
+                        </div>
+                      ) : isFetchingSlots ? (
+                        <div className="flex items-center gap-2 py-4 justify-center text-sm text-slate-500">
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-emerald-700 border-t-transparent"></div>
+                          Checking slot availability...
+                        </div>
+                      ) : !isDoctorAvailableOnDay ? (
+                        <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl text-sm">
+                          <p className="font-semibold mb-1">
+                            Dr. {selectedDoctorObj?.name} is not available on {selectedDayOfWeek}s.
+                          </p>
+                          <p className="text-xs text-amber-700">
+                            Available days: {(selectedDoctorObj?.availableDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']).join(', ')}
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          {slotCheckError && <p className="text-xs text-red-600 mb-2">{slotCheckError}</p>}
+                          {filteredSlots.length === 0 ? (
+                            <div className="bg-slate-50 border border-slate-200 text-center py-4 text-sm text-slate-500 rounded-xl">
+                              No slots configured for this doctor's hours.
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                              {filteredSlots.map(slot => {
+                                const isBooked = bookedSlots.includes(slot);
+                                const isSelected = bookingSlot === slot;
+                                return (
+                                  <button
+                                    key={slot}
+                                    type="button"
+                                    disabled={isBooked}
+                                    onClick={() => setBookingSlot(slot)}
+                                    className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-all ${
+                                      isBooked 
+                                        ? 'bg-slate-100 border-slate-200 text-slate-400 line-through cursor-not-allowed'
+                                        : isSelected
+                                          ? 'bg-[#156619] border-[#156619] text-white shadow-sm font-bold'
+                                          : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                                    }`}
+                                  >
+                                    {slot} {isBooked && <span className="block text-[9px] opacity-75">(Booked)</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 

@@ -36,6 +36,18 @@ const doctorSchema = new mongoose.Schema(
     schedule: {
       type: String,
       default: '',
+    },
+    availableDays: {
+      type: [String],
+      default: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    },
+    workingStart: {
+      type: String,
+      default: '09:00 AM',
+    },
+    workingEnd: {
+      type: String,
+      default: '05:00 PM',
     }
   },
   {

@@ -52,6 +52,12 @@ const AdminDoctors = () => {
     phone: '9765940555',
     imageType: 'url', // 'url' or 'upload'
     imageUrl: '',
+    experience: '',
+    biography: '',
+    schedule: '',
+    availableDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    workingStart: '09:00 AM',
+    workingEnd: '05:00 PM',
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -122,6 +128,12 @@ const AdminDoctors = () => {
       phone: '9765940555',
       imageType: 'url',
       imageUrl: '',
+      experience: '',
+      biography: '',
+      schedule: 'Sunday – Friday (10:00 AM – 3:00 PM)',
+      availableDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      workingStart: '09:00 AM',
+      workingEnd: '05:00 PM',
     });
     setImageFile(null);
     setImagePreview(null);
@@ -143,6 +155,12 @@ const AdminDoctors = () => {
       phone: doctor.phone || '9765940555',
       imageType: isLocalUpload ? 'upload' : 'url',
       imageUrl: isLocalUpload ? '' : doctor.image,
+      experience: doctor.experience || '',
+      biography: doctor.biography || '',
+      schedule: doctor.schedule || '',
+      availableDays: doctor.availableDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      workingStart: doctor.workingStart || '09:00 AM',
+      workingEnd: doctor.workingEnd || '05:00 PM',
     });
     setImageFile(null);
     setImagePreview(isLocalUpload ? `${API_BASE_URL}${doctor.image}` : doctor.image);
@@ -187,6 +205,12 @@ const AdminDoctors = () => {
     postData.append('qualification', formData.qualification);
     postData.append('department', formData.department);
     postData.append('phone', formData.phone);
+    postData.append('experience', formData.experience);
+    postData.append('biography', formData.biography);
+    postData.append('schedule', formData.schedule);
+    postData.append('availableDays', JSON.stringify(formData.availableDays));
+    postData.append('workingStart', formData.workingStart);
+    postData.append('workingEnd', formData.workingEnd);
 
     if (formData.imageType === 'upload' && imageFile) {
       postData.append('image', imageFile);
@@ -522,6 +546,120 @@ const AdminDoctors = () => {
                     <img src={imagePreview} alt="Selected preview" />
                   </div>
                 )}
+              </div>
+
+              {/* EXPERIENCE AND BIOGRAPHY */}
+              <div className="form-group-grid">
+                <div className="form-field-wrapper">
+                  <label>Clinical Experience Description</label>
+                  <input 
+                    type="text" 
+                    name="experience" 
+                    value={formData.experience} 
+                    onChange={handleInputChange} 
+                    placeholder="e.g. Over 8 years of clinical residency and practice"
+                  />
+                </div>
+                <div className="form-field-wrapper">
+                  <label>OPD Display Schedule Text</label>
+                  <input 
+                    type="text" 
+                    name="schedule" 
+                    value={formData.schedule} 
+                    onChange={handleInputChange} 
+                    placeholder="e.g. Sunday – Friday (10:00 AM – 3:00 PM)"
+                  />
+                </div>
+              </div>
+
+              <div className="form-field-wrapper">
+                <label>Biography & Professional Background</label>
+                <textarea 
+                  name="biography" 
+                  value={formData.biography} 
+                  onChange={handleInputChange} 
+                  placeholder="Describe the doctor's education, medical achievements, or specialization details..."
+                  rows={3}
+                />
+              </div>
+
+              {/* SCHEDULING MANAGER */}
+              <div className="form-field-wrapper schedule-manager-box" style={{
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                padding: '16px',
+                backgroundColor: '#f8fafc',
+                marginBottom: '15px'
+              }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#1e293b', marginBottom: '12px' }}>
+                  Weekly Availability & Time Slot Limits
+                </h3>
+                
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '6px' }}>
+                    Available Working Days
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => {
+                      const isChecked = formData.availableDays.includes(day);
+                      return (
+                        <label key={day} style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '13px',
+                          color: '#334155',
+                          cursor: 'pointer',
+                          backgroundColor: isChecked ? '#dcfce7' : '#ffffff',
+                          padding: '6px 10px',
+                          borderRadius: '8px',
+                          border: isChecked ? '1px solid #86efac' : '1px solid #cbd5e1',
+                          transition: 'all 0.2s'
+                        }}>
+                          <input 
+                            type="checkbox" 
+                            checked={isChecked}
+                            onChange={(e) => {
+                              const updatedDays = e.target.checked 
+                                ? [...formData.availableDays, day]
+                                : formData.availableDays.filter(d => d !== day);
+                              setFormData(prev => ({ ...prev, availableDays: updatedDays }));
+                            }}
+                            style={{ cursor: 'pointer' }}
+                          />
+                          {day.substring(0, 3)}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="form-group-grid">
+                  <div className="form-field-wrapper">
+                    <label>Working Hours Start</label>
+                    <select 
+                      name="workingStart" 
+                      value={formData.workingStart} 
+                      onChange={handleInputChange}
+                    >
+                      {["08:00 AM", "08:30 AM", "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM"].map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-field-wrapper">
+                    <label>Working Hours End</label>
+                    <select 
+                      name="workingEnd" 
+                      value={formData.workingEnd} 
+                      onChange={handleInputChange}
+                    >
+                      {["01:00 PM", "01:30 PM", "02:00 PM", "02:30 PM", "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM", "05:00 PM", "05:30 PM", "06:00 PM"].map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
 
               <div className="modal-footer-actions">
