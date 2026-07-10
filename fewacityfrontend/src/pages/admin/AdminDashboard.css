@@ -392,3 +392,189 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* VISUAL ANALYTICS CLASSES */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.analytics-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header-with-icon {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.header-title-area {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.header-icon {
+  width: 42px;
+  height: 42px;
+  padding: 9px;
+  border-radius: 12px;
+  stroke-width: 2px;
+}
+
+.trend-color {
+  background-color: #ecfdf5;
+  color: #10b981;
+}
+
+.dept-color {
+  background-color: #f5f3ff;
+  color: #8b5cf6;
+}
+
+.status-color {
+  background-color: #eff6ff;
+  color: #3b82f6;
+}
+
+.analytics-card h2,
+.status-analytics-section h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.card-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin: 2px 0 0 0;
+}
+
+.chart-container {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+}
+
+.svg-chart-wrapper {
+  width: 100%;
+  position: relative;
+}
+
+.trend-svg-chart {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.trend-bar-rect {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.trend-bar-rect:hover {
+  fill: #059669 !important;
+  filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.45));
+}
+
+.no-chart-data {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* STATUS BREAKDOWN GRID */
+.status-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.status-metric-card {
+  transition: all 0.2s ease;
+}
+
+.status-metric-card:hover {
+  transform: translateY(-2px);
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+@media (max-width: 1024px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+  .status-progress-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .status-progress-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* RECENT ACTIVITY & MESSAGES GRID */
+.dashboard-activity-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.recent-appointments-card,
+.top-doctors-card,
+.recent-messages-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.timeframe-select-dropdown:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08) !important;
+}
+
+.timeframe-select-dropdown:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+}
+
+/* Activity Table Styling */
+.activity-table th {
+  letter-spacing: 0.5px;
+}
+
+.activity-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.activity-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Scrollbar styling for table-responsive */
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-activity-grid {
+    grid-template-columns: 1fr;
+  }
+}
