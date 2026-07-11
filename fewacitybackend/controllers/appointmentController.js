@@ -1,6 +1,7 @@
 import Appointment from '../models/Appointment.js';
 import Doctor from '../models/Doctor.js';
 import Department from '../models/Department.js';
+import { sendBookingConfirmationEmail, sendAppointmentStatusUpdateEmail } from '../utils/mailer.js';
 
 // @desc    Create a new appointment booking
 // @route   POST /api/appointments
@@ -44,6 +45,21 @@ export const createAppointment = async (req, res) => {
     });
 
     const savedAppointment = await newAppointment.save();
+
+    // Populate saved appointment and send booking confirmation email asynchronously
+    Appointment.findById(savedAppointment._id)
+      .populate('patient', 'name email phone')
+      .populate('doctor', 'name qualification')
+      .populate('department', 'title')
+      .then(populatedAppt => {
+        if (populatedAppt) {
+          sendBookingConfirmationEmail(populatedAppt);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to send booking confirmation email:', err.message);
+      });
+
     res.status(201).json(savedAppointment);
   } catch (error) {
     res.status(500).json({ message: 'Failed to request appointment', error: error.message });
@@ -85,6 +101,20 @@ export const cancelAppointment = async (req, res) => {
     appointment.status = 'Cancelled';
     const updatedAppointment = await appointment.save();
 
+    // Populate and send status update email asynchronously
+    Appointment.findById(updatedAppointment._id)
+      .populate('patient', 'name email phone')
+      .populate('doctor', 'name qualification')
+      .populate('department', 'title')
+      .then(populatedAppt => {
+        if (populatedAppt) {
+          sendAppointmentStatusUpdateEmail(populatedAppt, { statusChanged: true });
+        }
+      })
+      .catch(err => {
+        console.error('Failed to send cancellation email:', err.message);
+      });
+
     res.status(200).json(updatedAppointment);
   } catch (error) {
     res.status(500).json({ message: 'Failed to cancel appointment', error: error.message });
@@ -113,16 +143,25 @@ export const getAppointments = async (req, res) => {
 // @access  Private (Admin)
 export const updateAppointment = async (req, res) => {
   try {
-    const { status, prescription, adminNotes } = req.body;
+    const { status, prescription, adminNotes, date, timeSlot } = req.body;
     const appointment = await Appointment.findById(req.params.id);
 
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
     }
 
+    // Capture original values for change detection
+    const originalStatus = appointment.status;
+    const originalDate = appointment.date ? new Date(appointment.date).getTime() : 0;
+    const originalTimeSlot = appointment.timeSlot;
+    const originalPrescription = appointment.prescription;
+    const originalNotes = appointment.adminNotes;
+
     if (status) appointment.status = status;
     if (prescription !== undefined) appointment.prescription = prescription;
     if (adminNotes !== undefined) appointment.adminNotes = adminNotes;
+    if (date) appointment.date = date;
+    if (timeSlot) appointment.timeSlot = timeSlot;
 
     const updatedAppointment = await appointment.save();
 
@@ -131,6 +170,26 @@ export const updateAppointment = async (req, res) => {
       .populate('patient', 'name email phone')
       .populate('doctor', 'name qualification')
       .populate('department', 'title');
+
+    // Detect changes to send email
+    const statusChanged = populated.status !== originalStatus;
+    const newDateVal = populated.date ? new Date(populated.date).getTime() : 0;
+    const dateChanged = newDateVal !== originalDate;
+    const timeSlotChanged = populated.timeSlot !== originalTimeSlot;
+    const rescheduled = dateChanged || timeSlotChanged;
+    const prescriptionAdded = populated.prescription && populated.prescription !== originalPrescription;
+    const notesAdded = populated.adminNotes && populated.adminNotes !== originalNotes;
+
+    if (statusChanged || rescheduled || prescriptionAdded || notesAdded) {
+      sendAppointmentStatusUpdateEmail(populated, {
+        statusChanged,
+        rescheduled,
+        prescriptionAdded,
+        notesAdded
+      }).catch(err => {
+        console.error('Failed to send status update email:', err.message);
+      });
+    }
 
     res.status(200).json(populated);
   } catch (error) {

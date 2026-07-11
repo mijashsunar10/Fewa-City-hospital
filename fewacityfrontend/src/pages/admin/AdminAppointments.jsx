@@ -22,6 +22,8 @@ const AdminAppointments = () => {
   const [editStatus, setEditStatus] = useState('');
   const [editPrescription, setEditPrescription] = useState('');
   const [editAdminNotes, setEditAdminNotes] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editTimeSlot, setEditTimeSlot] = useState('');
   
   // Feedback states
   const [actionSuccess, setActionSuccess] = useState('');
@@ -70,6 +72,8 @@ const AdminAppointments = () => {
     setEditStatus(appt.status || 'Pending');
     setEditPrescription(appt.prescription || '');
     setEditAdminNotes(appt.adminNotes || '');
+    setEditDate(appt.date ? new Date(appt.date).toISOString().split('T')[0] : '');
+    setEditTimeSlot(appt.timeSlot || '');
     setIsModalOpen(true);
   };
 
@@ -89,7 +93,9 @@ const AdminAppointments = () => {
       const response = await axios.put(`${API_BASE_URL}/api/appointments/${selectedAppt._id}`, {
         status: editStatus,
         prescription: editPrescription,
-        adminNotes: editAdminNotes
+        adminNotes: editAdminNotes,
+        date: editDate,
+        timeSlot: editTimeSlot
       }, config);
 
       setActionSuccess('Appointment updated successfully.');
@@ -347,9 +353,43 @@ const AdminAppointments = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                 <div>
-                  <label>Date & Slot</label>
-                  <input type="text" readOnly className="modal-input" style={{ backgroundColor: '#f1f5f9' }} value={`${new Date(selectedAppt.date).toLocaleDateString()} @ ${selectedAppt.timeSlot}`} />
+                  <label>Appointment Date</label>
+                  <input 
+                    type="date" 
+                    className="modal-input" 
+                    value={editDate} 
+                    onChange={(e) => setEditDate(e.target.value)} 
+                  />
                 </div>
+                <div>
+                  <label>Preferred Time Slot</label>
+                  <select 
+                    className="modal-input"
+                    value={editTimeSlot}
+                    onChange={(e) => setEditTimeSlot(e.target.value)}
+                  >
+                    <option value="">-- Select Time Slot --</option>
+                    <option value="09:00 AM - 09:30 AM">09:00 AM - 09:30 AM</option>
+                    <option value="09:30 AM - 10:00 AM">09:30 AM - 10:00 AM</option>
+                    <option value="10:00 AM - 10:30 AM">10:00 AM - 10:30 AM</option>
+                    <option value="10:30 AM - 11:00 AM">10:30 AM - 11:00 AM</option>
+                    <option value="11:00 AM - 11:30 AM">11:00 AM - 11:30 AM</option>
+                    <option value="11:30 AM - 12:00 PM">11:30 AM - 12:00 PM</option>
+                    <option value="12:00 PM - 12:30 PM">12:00 PM - 12:30 PM</option>
+                    <option value="12:30 PM - 01:00 PM">12:30 PM - 01:00 PM</option>
+                    <option value="01:00 PM - 01:30 PM">01:00 PM - 01:30 PM</option>
+                    <option value="01:30 PM - 02:00 PM">01:30 PM - 02:00 PM</option>
+                    <option value="02:00 PM - 02:30 PM">02:00 PM - 02:30 PM</option>
+                    <option value="02:30 PM - 03:00 PM">02:30 PM - 03:00 PM</option>
+                    <option value="03:00 PM - 03:30 PM">03:00 PM - 03:30 PM</option>
+                    <option value="03:30 PM - 04:00 PM">03:30 PM - 04:00 PM</option>
+                    <option value="04:00 PM - 04:30 PM">04:00 PM - 04:30 PM</option>
+                    <option value="04:30 PM - 05:00 PM">04:30 PM - 05:00 PM</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px', marginBottom: '16px' }}>
                 <div>
                   <label>Booking Status</label>
                   <select 
