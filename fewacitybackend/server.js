@@ -10,6 +10,7 @@ import serviceRoutes from './routes/serviceRoutes.js';
 import departmentRoutes from './routes/departmentRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import appointmentRoutes from './routes/appointmentRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 import { sanitizeInput } from './middleware/sanitize.js';
 import { generalLimiter, authLimiter, formLimiter } from './middleware/rateLimiter.js';
 
@@ -74,6 +75,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Basic Route
 app.get('/', (req, res) => {

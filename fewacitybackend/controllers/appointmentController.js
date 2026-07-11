@@ -1,6 +1,7 @@
 import Appointment from '../models/Appointment.js';
 import Doctor from '../models/Doctor.js';
 import Department from '../models/Department.js';
+import Notification from '../models/Notification.js';
 import { sendBookingConfirmationEmail, sendAppointmentStatusUpdateEmail } from '../utils/mailer.js';
 
 // @desc    Create a new appointment booking
@@ -51,13 +52,22 @@ export const createAppointment = async (req, res) => {
       .populate('patient', 'name email phone')
       .populate('doctor', 'name qualification')
       .populate('department', 'title')
-      .then(populatedAppt => {
+      .then(async (populatedAppt) => {
         if (populatedAppt) {
           sendBookingConfirmationEmail(populatedAppt);
+          
+          // Create automated notification record
+          await Notification.create({
+            patient: populatedAppt.patient._id,
+            appointment: populatedAppt._id,
+            type: 'BookingConfirmation',
+            title: 'Appointment Booking Request',
+            message: `Your appointment request with Dr. ${populatedAppt.doctor.name} on ${new Date(populatedAppt.date).toLocaleDateString()} at ${populatedAppt.timeSlot} is submitted and pending review.`
+          });
         }
       })
       .catch(err => {
-        console.error('Failed to send booking confirmation email:', err.message);
+        console.error('Failed to handle post-booking tasks:', err.message);
       });
 
     res.status(201).json(savedAppointment);
@@ -106,13 +116,22 @@ export const cancelAppointment = async (req, res) => {
       .populate('patient', 'name email phone')
       .populate('doctor', 'name qualification')
       .populate('department', 'title')
-      .then(populatedAppt => {
+      .then(async (populatedAppt) => {
         if (populatedAppt) {
           sendAppointmentStatusUpdateEmail(populatedAppt, { statusChanged: true });
+
+          // Create automated notification record
+          await Notification.create({
+            patient: populatedAppt.patient._id,
+            appointment: populatedAppt._id,
+            type: 'Cancelled',
+            title: 'Appointment Cancelled',
+            message: `Your scheduled appointment with Dr. ${populatedAppt.doctor.name} on ${new Date(populatedAppt.date).toLocaleDateString()} has been cancelled.`
+          });
         }
       })
       .catch(err => {
-        console.error('Failed to send cancellation email:', err.message);
+        console.error('Failed to handle post-cancellation tasks:', err.message);
       });
 
     res.status(200).json(updatedAppointment);
@@ -189,6 +208,60 @@ export const updateAppointment = async (req, res) => {
       }).catch(err => {
         console.error('Failed to send status update email:', err.message);
       });
+
+      // Automated dashboard notification logging
+      try {
+        if (statusChanged) {
+          let customMsg = `Your appointment status was updated to ${populated.status}.`;
+          if (populated.status === 'Approved') {
+            customMsg = `Your appointment with Dr. ${populated.doctor.name} on ${new Date(populated.date).toLocaleDateString()} at ${populated.timeSlot} has been approved and scheduled.`;
+          } else if (populated.status === 'Completed') {
+            customMsg = `Your appointment with Dr. ${populated.doctor.name} is marked as completed. Thank you for visiting!`;
+          } else if (populated.status === 'Cancelled') {
+            customMsg = `Your appointment with Dr. ${populated.doctor.name} on ${new Date(populated.date).toLocaleDateString()} has been cancelled.`;
+          }
+
+          await Notification.create({
+            patient: populated.patient._id,
+            appointment: populated._id,
+            type: populated.status,
+            title: `Appointment ${populated.status}`,
+            message: customMsg
+          });
+        }
+
+        if (rescheduled && !statusChanged) {
+          await Notification.create({
+            patient: populated.patient._id,
+            appointment: populated._id,
+            type: 'Rescheduled',
+            title: 'Appointment Rescheduled',
+            message: `Your appointment with Dr. ${populated.doctor.name} was rescheduled to ${new Date(populated.date).toLocaleDateString()} at ${populated.timeSlot}.`
+          });
+        }
+
+        if (prescriptionAdded) {
+          await Notification.create({
+            patient: populated.patient._id,
+            appointment: populated._id,
+            type: 'PrescriptionAdded',
+            title: 'New Prescription/Diagnosis',
+            message: `Dr. ${populated.doctor.name} has uploaded a new prescription & diagnosis for your visit.`
+          });
+        }
+
+        if (notesAdded) {
+          await Notification.create({
+            patient: populated.patient._id,
+            appointment: populated._id,
+            type: 'NotesAdded',
+            title: 'Clinical Notes Update',
+            message: `Clinical instructions or preparation guidelines have been updated for your appointment.`
+          });
+        }
+      } catch (notifErr) {
+        console.error('Failed to create DB notification logs:', notifErr.message);
+      }
     }
 
     res.status(200).json(populated);

@@ -3,7 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   User, Calendar, FileText, ClipboardList, LogOut, CheckCircle, Clock, XCircle, 
-  UserCheck, AlertCircle, Edit, MapPin, Phone, Award, ShieldAlert, BookOpen, ArrowLeft
+  UserCheck, AlertCircle, Edit, MapPin, Phone, Award, ShieldAlert, BookOpen, ArrowLeft,
+  Bell, Check
 } from 'lucide-react';
 import axios from 'axios';
 import API_BASE_URL from '../../config/api';
@@ -19,6 +20,8 @@ const PatientDashboard = () => {
   const [doctors, setDoctors] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Form Booking State
   const [bookingDept, setBookingDept] = useState('');
@@ -181,9 +184,62 @@ const PatientDashboard = () => {
     setIsLoadingDetails(false);
   };
 
+  // Fetch notifications
+  const fetchNotifications = async () => {
+    if (!token) return;
+    try {
+      const config = {
+        headers: { Authorization: `Bearer ${token}` }
+      };
+      const res = await axios.get(`${API_BASE_URL}/api/notifications`, config);
+      setNotifications(res.data);
+      const unreads = res.data.filter(n => !n.isRead).length;
+      setUnreadCount(unreads);
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+    }
+  };
+
+  const handleMarkAsRead = async (notifId) => {
+    try {
+      const config = {
+        headers: { Authorization: `Bearer ${token}` }
+      };
+      await axios.put(`${API_BASE_URL}/api/notifications/${notifId}/read`, {}, config);
+      setNotifications(prev => 
+        prev.map(n => n._id === notifId ? { ...n, isRead: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error('Failed to mark notification as read:', err);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      const config = {
+        headers: { Authorization: `Bearer ${token}` }
+      };
+      await axios.put(`${API_BASE_URL}/api/notifications/read-all`, {}, config);
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error('Failed to mark all notifications as read:', err);
+    }
+  };
+
   useEffect(() => {
     if (user && user.role === 'user') {
       fetchData();
+      fetchNotifications();
+    }
+  }, [user, token]);
+
+  // Set up live polling (every 10 seconds) for updates
+  useEffect(() => {
+    if (user && user.role === 'user' && token) {
+      const interval = setInterval(fetchNotifications, 10000);
+      return () => clearInterval(interval);
     }
   }, [user, token]);
 
@@ -405,6 +461,25 @@ const PatientDashboard = () => {
           >
             <ClipboardList className="h-4.5 w-4.5" />
             My Appointments
+          </button>
+
+          <button
+            onClick={() => handleTabChange('notifications')}
+            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+              activeTab === 'notifications'
+                ? 'bg-[#156619] text-white shadow-md'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Bell className="h-4.5 w-4.5" />
+              <span>Notifications Center</span>
+            </div>
+            {unreadCount > 0 && (
+              <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
+                {unreadCount}
+              </span>
+            )}
           </button>
 
           <button
@@ -829,6 +904,122 @@ const PatientDashboard = () => {
                   </div>
                 ) : (
                   <p className="text-slate-400 text-sm text-center py-12">No appointment history found.</p>
+                )}
+              </div>
+            )}
+
+            {/* NOTIFICATIONS TAB */}
+            {activeTab === 'notifications' && (
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-4 mb-6">
+                  <div>
+                    <h2 className="text-2xl font-extrabold text-slate-900">Notifications Hub</h2>
+                    <p className="text-slate-500 text-sm">Stay updated on your booking status, schedule changes, and prescriptions.</p>
+                  </div>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={handleMarkAllAsRead}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-105 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all border border-slate-200"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+
+                {notifications.length > 0 ? (
+                  <div className="space-y-4">
+                    {notifications.map((notif) => {
+                      // Determine theme colors based on type
+                      let iconColor = 'text-blue-600 bg-blue-50 border-blue-200';
+                      let barColor = 'border-l-blue-500';
+                      let statusIcon = <Bell className="h-5 w-5" />;
+
+                      if (notif.type === 'BookingConfirmation') {
+                        iconColor = 'text-amber-600 bg-amber-50 border-amber-200';
+                        barColor = 'border-l-amber-500';
+                      } else if (notif.type === 'Approved') {
+                        iconColor = 'text-green-600 bg-green-50 border-green-200';
+                        barColor = 'border-l-green-500';
+                        statusIcon = <CheckCircle className="h-5 w-5" />;
+                      } else if (notif.type === 'Cancelled') {
+                        iconColor = 'text-red-600 bg-red-50 border-red-200';
+                        barColor = 'border-l-red-500';
+                        statusIcon = <XCircle className="h-5 w-5" />;
+                      } else if (notif.type === 'Completed') {
+                        iconColor = 'text-indigo-600 bg-indigo-50 border-indigo-200';
+                        barColor = 'border-l-indigo-500';
+                        statusIcon = <UserCheck className="h-5 w-5" />;
+                      } else if (notif.type === 'Rescheduled') {
+                        iconColor = 'text-orange-600 bg-orange-50 border-orange-200';
+                        barColor = 'border-l-orange-500';
+                        statusIcon = <Clock className="h-5 w-5" />;
+                      } else if (notif.type === 'PrescriptionAdded') {
+                        iconColor = 'text-cyan-600 bg-cyan-50 border-cyan-200';
+                        barColor = 'border-l-cyan-500';
+                        statusIcon = <FileText className="h-5 w-5" />;
+                      } else if (notif.type === 'NotesAdded') {
+                        iconColor = 'text-purple-600 bg-purple-50 border-purple-200';
+                        barColor = 'border-l-purple-500';
+                        statusIcon = <ClipboardList className="h-5 w-5" />;
+                      }
+
+                      return (
+                        <div
+                          key={notif._id}
+                          className={`flex items-start justify-between gap-4 p-4 rounded-xl border border-slate-100 transition-all ${
+                            !notif.isRead 
+                              ? `bg-slate-50/50 shadow-sm border-l-4 ${barColor}`
+                              : 'bg-white text-slate-600'
+                          }`}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className={`p-2.5 rounded-lg border ${iconColor} shrink-0`}>
+                              {statusIcon}
+                            </div>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className={`text-sm font-bold ${!notif.isRead ? 'text-slate-900' : 'text-slate-700'}`}>
+                                  {notif.title}
+                                </h4>
+                                {!notif.isRead && (
+                                  <span className="bg-red-500 w-1.5 h-1.5 rounded-full shrink-0 animate-ping"></span>
+                                )}
+                              </div>
+                              <p className="text-xs md:text-sm leading-relaxed text-slate-600">
+                                {notif.message}
+                              </p>
+                              <div className="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5 mt-1">
+                                <span>{new Date(notif.createdAt).toLocaleDateString()}</span>
+                                <span>&bull;</span>
+                                <span>{new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {!notif.isRead && (
+                            <button
+                              onClick={() => handleMarkAsRead(notif._id)}
+                              className="p-1 hover:bg-slate-100 text-slate-400 hover:text-[#156619] rounded-full shrink-0 transition-colors"
+                              title="Mark as read"
+                            >
+                              <Check className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-center py-16 space-y-4">
+                    <div className="p-4 bg-slate-50 text-slate-300 rounded-full border border-slate-100">
+                      <Bell className="h-10 w-10" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800">Your notifications inbox is empty</p>
+                      <p className="text-xs text-slate-400 mt-1">We will notify you here when the status of your bookings change.</p>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
