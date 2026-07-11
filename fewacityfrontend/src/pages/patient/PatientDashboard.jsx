@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   User, Calendar, FileText, ClipboardList, LogOut, CheckCircle, Clock, XCircle, 
   UserCheck, AlertCircle, Edit, MapPin, Phone, Award, ShieldAlert, BookOpen, ArrowLeft,
-  Bell, Check
+  Bell, Check, Activity
 } from 'lucide-react';
 import axios from 'axios';
 import API_BASE_URL from '../../config/api';
@@ -407,6 +407,24 @@ const PatientDashboard = () => {
   const approvedAppointments = appointments.filter(a => a.status === 'Approved').length;
   const nextAppointment = appointments.find(a => a.status === 'Approved' || a.status === 'Pending');
 
+  const patientAge = useMemo(() => {
+    if (!user || !user.dob) return 'N/A';
+    const birthDate = new Date(user.dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return `${age} years`;
+  }, [user]);
+
+  const latestNotification = useMemo(() => {
+    if (!notifications || notifications.length === 0) return null;
+    const unread = notifications.find(n => !n.isRead);
+    return unread || notifications[0];
+  }, [notifications]);
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       {/* SIDEBAR */}
@@ -525,78 +543,123 @@ const PatientDashboard = () => {
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
               <div className="space-y-6">
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">Welcome, {user.name.split(' ')[0]}!</h1>
-                  <p className="text-slate-500 text-sm">Here is a quick overview of your medical records and appointments.</p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+                      Welcome Back, {user.name.split(' ')[0]}!
+                    </h1>
+                    <p className="text-slate-500 text-sm">Access your clinical reports, appointment status, and health records below.</p>
+                  </div>
+                  <div className="text-xs text-slate-500 font-semibold bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm self-start md:self-auto flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span>System Status: Online & Synchronized</span>
+                  </div>
                 </div>
+
+                {/* LATEST UNREAD NOTIFICATION BANNER */}
+                {latestNotification && !latestNotification.isRead && (
+                  <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 flex items-start justify-between gap-3 shadow-sm transition-all hover:shadow-md">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-emerald-100/80 text-emerald-800 rounded-lg shrink-0 mt-0.5">
+                        <Bell className="h-4.5 w-4.5 animate-bounce" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] uppercase font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded tracking-wider">
+                          Latest Clinical Update
+                        </span>
+                        <h4 className="text-sm font-extrabold text-slate-900 mt-1">
+                          {latestNotification.title}
+                        </h4>
+                        <p className="text-xs text-slate-600 mt-0.5 leading-relaxed font-medium">
+                          {latestNotification.message}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        handleMarkAsRead(latestNotification._id);
+                        handleTabChange('notifications');
+                      }}
+                      className="text-xs font-bold text-emerald-700 hover:text-[#156619] shrink-0 hover:underline flex items-center gap-1 bg-white hover:bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg shadow-sm"
+                    >
+                      View Hub &rarr;
+                    </button>
+                  </div>
+                )}
 
                 {/* STATS */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 transition-all hover:scale-[1.01] hover:shadow">
                     <div className="p-3 bg-[#156619]/10 text-[#156619] rounded-lg">
                       <ClipboardList className="h-6 w-6" />
                     </div>
                     <div>
-                      <span className="text-xs font-semibold text-slate-400 uppercase">Total Visits</span>
-                      <h4 className="text-2xl font-bold text-slate-800">{totalAppointments}</h4>
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Consults</span>
+                      <h4 className="text-2xl font-black text-slate-800">{totalAppointments}</h4>
                     </div>
                   </div>
 
-                  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 transition-all hover:scale-[1.01] hover:shadow">
                     <div className="p-3 bg-yellow-50 text-yellow-600 rounded-lg">
                       <Clock className="h-6 w-6" />
                     </div>
                     <div>
-                      <span className="text-xs font-semibold text-slate-400 uppercase">Pending Requests</span>
-                      <h4 className="text-2xl font-bold text-slate-800">{pendingAppointments}</h4>
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pending Requests</span>
+                      <h4 className="text-2xl font-black text-slate-800">{pendingAppointments}</h4>
                     </div>
                   </div>
 
-                  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 transition-all hover:scale-[1.01] hover:shadow">
                     <div className="p-3 bg-green-50 text-green-600 rounded-lg">
                       <CheckCircle className="h-6 w-6" />
                     </div>
                     <div>
-                      <span className="text-xs font-semibold text-slate-400 uppercase">Approved Visits</span>
-                      <h4 className="text-2xl font-bold text-slate-800">{approvedAppointments}</h4>
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Approved Visits</span>
+                      <h4 className="text-2xl font-black text-slate-800">{approvedAppointments}</h4>
                     </div>
                   </div>
                 </div>
 
                 {/* NEXT APPOINTMENT / BANNER */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-2 bg-gradient-to-r from-[#156619] to-emerald-800 text-white p-6 md:p-8 rounded-xl shadow-md flex flex-col justify-between">
-                    <div>
-                      <h2 className="text-xl md:text-2xl font-bold">Book a Consult Anytime</h2>
-                      <p className="mt-2 text-white/80 text-sm max-w-md">
-                        Schedule slots with our experienced clinical specialists. Submit symptoms to receive pre-visit guidance.
+                  <div className="md:col-span-2 bg-gradient-to-br from-[#156619] to-emerald-900 text-white p-6 md:p-8 rounded-xl shadow-md flex flex-col justify-between relative overflow-hidden">
+                    <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-1/4 translate-y-1/4">
+                      <Calendar className="h-48 w-48 animate-pulse" />
+                    </div>
+                    <div className="relative z-10">
+                      <h2 className="text-xl md:text-2xl font-bold">Schedule an Appointment</h2>
+                      <p className="mt-2 text-emerald-100/90 text-sm max-w-md leading-relaxed">
+                        Book direct visits or follow-ups with Pokhara's top medical specialists. Specify symptoms for personalized clinical care.
                       </p>
                     </div>
                     <button
                       onClick={() => handleTabChange('book')}
-                      className="mt-6 w-fit bg-[#facc15] hover:bg-[#eab308] text-slate-900 px-5 py-2 rounded-lg font-bold text-sm transition-colors shadow"
+                      className="mt-6 w-fit bg-[#facc15] hover:bg-[#eab308] text-slate-900 px-5 py-2.5 rounded-lg font-bold text-sm transition-all hover:scale-105 shadow-md hover:shadow-lg relative z-10"
                     >
-                      Schedule New Visit
+                      Book New Consult
                     </button>
                   </div>
 
-                  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <h3 className="font-bold text-slate-800 text-sm border-b border-slate-100 pb-3">Next Scheduled Visit</h3>
+                  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between transition-all hover:shadow">
+                    <h3 className="font-extrabold text-slate-800 text-sm border-b border-slate-100 pb-3 uppercase tracking-wider">Next Scheduled Visit</h3>
                     {nextAppointment ? (
                       <div className="mt-4 flex-grow flex flex-col justify-between gap-4">
                         <div>
-                          <div className="font-bold text-slate-800">{nextAppointment.doctor?.name || 'Assigned Specialist'}</div>
-                          <div className="text-xs text-slate-400 font-semibold">{nextAppointment.department?.title || 'Clinic'}</div>
-                          <div className="mt-3 flex items-center gap-2 text-sm text-slate-600">
-                            <Calendar className="h-4 w-4 text-[#156619]" />
-                            <span>{new Date(nextAppointment.date).toLocaleDateString()}</span>
-                          </div>
-                          <div className="mt-1.5 flex items-center gap-2 text-sm text-slate-600">
-                            <Clock className="h-4 w-4 text-[#156619]" />
-                            <span>{nextAppointment.timeSlot}</span>
+                          <div className="font-bold text-slate-900 text-base">{nextAppointment.doctor?.name || 'Assigned Specialist'}</div>
+                          <div className="text-xs text-[#156619] font-bold mt-0.5">{nextAppointment.department?.title || 'Clinic'}</div>
+                          
+                          <div className="mt-4 space-y-2">
+                            <div className="flex items-center gap-2.5 text-xs text-slate-600 font-medium">
+                              <Calendar className="h-4 w-4 text-[#156619]" />
+                              <span>{new Date(nextAppointment.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                            </div>
+                            <div className="flex items-center gap-2.5 text-xs text-slate-600 font-medium">
+                              <Clock className="h-4 w-4 text-[#156619]" />
+                              <span>{nextAppointment.timeSlot}</span>
+                            </div>
                           </div>
                         </div>
-                        <span className={`w-fit text-xs font-bold px-2.5 py-1 rounded-full border ${
+                        <span className={`w-fit text-[10px] uppercase font-extrabold px-3 py-1 rounded-full border ${
                           nextAppointment.status === 'Approved'
                             ? 'bg-green-50 text-green-700 border-green-200'
                             : 'bg-yellow-50 text-yellow-700 border-yellow-200'
@@ -605,37 +668,125 @@ const PatientDashboard = () => {
                         </span>
                       </div>
                     ) : (
-                      <div className="mt-8 flex flex-col items-center justify-center text-center">
-                        <Calendar className="h-10 w-10 text-slate-300" />
+                      <div className="my-auto py-8 flex flex-col items-center justify-center text-center">
+                        <Calendar className="h-10 w-10 text-slate-300 stroke-[1.5]" />
                         <p className="mt-2 text-xs text-slate-400 font-semibold">No active bookings.</p>
                       </div>
                     )}
                   </div>
                 </div>
 
+                {/* CLINICAL SUMMARY & HELPLINES */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm transition-all hover:shadow">
+                    <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                      <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-2 uppercase tracking-wider">
+                        <Activity className="h-4 w-4 text-[#156619]" />
+                        Personal Clinical Summary
+                      </h3>
+                      <button
+                        onClick={() => handleTabChange('profile')}
+                        className="text-xs text-[#156619] hover:underline font-bold"
+                      >
+                        Edit Details
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs mb-4">
+                      <div className="bg-slate-50/50 p-3 rounded-lg border border-slate-100 text-center">
+                        <span className="text-[9px] text-slate-400 font-bold block uppercase mb-1">Blood Group</span>
+                        <span className="text-sm font-extrabold text-red-600 flex items-center justify-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0"></span>
+                          {user.bloodGroup || 'Not Set'}
+                        </span>
+                      </div>
+                      
+                      <div className="bg-slate-50/50 p-3 rounded-lg border border-slate-100 text-center">
+                        <span className="text-[9px] text-slate-400 font-bold block uppercase mb-1">Calculated Age</span>
+                        <span className="text-sm font-extrabold text-slate-800">{patientAge}</span>
+                      </div>
+
+                      <div className="bg-slate-50/50 p-3 rounded-lg border border-slate-100 text-center">
+                        <span className="text-[9px] text-slate-400 font-bold block uppercase mb-1">Gender</span>
+                        <span className="text-sm font-extrabold text-slate-800">{user.gender || 'Not Set'}</span>
+                      </div>
+                      
+                      <div className="bg-slate-50/50 p-3 rounded-lg border border-slate-100 text-center">
+                        <span className="text-[9px] text-slate-400 font-bold block uppercase mb-1">Address</span>
+                        <span className="text-sm font-bold text-slate-800 truncate block">{user.address || 'Not Set'}</span>
+                      </div>
+                    </div>
+                    
+                    {user.medicalHistory ? (
+                      <div className="p-4 bg-red-50/30 border border-red-100 rounded-lg text-xs">
+                        <strong className="text-red-800 block mb-1 uppercase tracking-wider text-[10px]">Medical History & Chronics:</strong>
+                        <p className="text-slate-600 leading-relaxed italic">"{user.medicalHistory}"</p>
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-slate-50 border border-slate-200 border-dashed rounded-lg text-xs text-slate-400 text-center">
+                        No chronic complications or allergies declared in your profile.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between transition-all hover:shadow">
+                    <div>
+                      <h3 className="font-extrabold text-slate-800 text-sm border-b border-slate-100 pb-3 mb-4 uppercase tracking-wider">
+                        Hospital Helpline
+                      </h3>
+                      <div className="space-y-4 text-xs">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-100 shrink-0">
+                            <Phone className="h-4.5 w-4.5" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-800">24/7 Desk Reception</p>
+                            <p className="text-[10px] text-slate-500 font-semibold">+977-61-5940555</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          <div className="p-2.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-100 shrink-0">
+                            <MapPin className="h-4.5 w-4.5" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-800">Fewa City Location</p>
+                            <p className="text-[10px] text-slate-500 font-semibold">Nagdhunga, Pokhara, Nepal</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400 leading-normal">
+                      For immediate trauma, cardiac issues or major accidents, reach our emergency wing at once.
+                    </div>
+                  </div>
+                </div>
+
                 {/* RECENT VISITS TIMELINE */}
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                  <h3 className="font-bold text-slate-800 text-md border-b border-slate-100 pb-3 mb-4">Recent Appointments</h3>
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm transition-all hover:shadow">
+                  <h3 className="font-extrabold text-slate-800 text-sm border-b border-slate-100 pb-3 mb-4 uppercase tracking-wider">Recent Consultations</h3>
                   {appointments.length > 0 ? (
                     <div className="space-y-4">
                       {appointments.slice(0, 3).map((appt) => (
-                        <div key={appt._id} className="flex justify-between items-center p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                        <div key={appt._id} className="flex justify-between items-center p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all">
                           <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-full ${
-                              appt.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                              appt.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                              appt.status === 'Completed' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
+                            <div className={`p-2 rounded-lg border shrink-0 ${
+                              appt.status === 'Approved' ? 'bg-green-50 text-green-700 border-green-200' :
+                              appt.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                              appt.status === 'Completed' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-red-50 text-red-700 border-red-200'
                             }`}>
-                              {appt.status === 'Approved' ? <CheckCircle className="h-4 w-4" /> :
-                               appt.status === 'Pending' ? <Clock className="h-4 w-4" /> :
-                               appt.status === 'Completed' ? <UserCheck className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                              {appt.status === 'Approved' ? <CheckCircle className="h-4.5 w-4.5" /> :
+                               appt.status === 'Pending' ? <Clock className="h-4.5 w-4.5" /> :
+                               appt.status === 'Completed' ? <UserCheck className="h-4.5 w-4.5" /> : <XCircle className="h-4.5 w-4.5" />}
                             </div>
                             <div>
-                              <div className="font-bold text-sm text-slate-800">{appt.doctor?.name || 'Specialist'}</div>
-                              <div className="text-xs text-slate-400">{new Date(appt.date).toLocaleDateString()} &bull; {appt.timeSlot}</div>
+                              <div className="font-bold text-sm text-slate-900">Dr. {appt.doctor?.name || 'Specialist'}</div>
+                              <div className="text-[11px] text-slate-400 font-semibold mt-0.5">
+                                {new Date(appt.date).toLocaleDateString()} &bull; {appt.timeSlot}
+                              </div>
                             </div>
                           </div>
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded border ${
+                          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase ${
                             appt.status === 'Approved' ? 'bg-green-50 text-green-700 border-green-200' :
                             appt.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                             appt.status === 'Completed' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-red-50 text-red-700 border-red-200'
@@ -647,9 +798,9 @@ const PatientDashboard = () => {
                       {appointments.length > 3 && (
                         <button
                           onClick={() => handleTabChange('appointments')}
-                          className="w-full text-center text-sm font-semibold text-[#156619] hover:underline pt-2 block"
+                          className="w-full text-center text-xs font-bold text-[#156619] hover:underline pt-2 block"
                         >
-                          View all appointments
+                          View All Consultations History &rarr;
                         </button>
                       )}
                     </div>
@@ -874,9 +1025,39 @@ const PatientDashboard = () => {
                                 </div>
                               )}
                               {appt.prescription ? (
-                                <div className="bg-blue-50 p-2.5 rounded border border-blue-100 text-blue-900 mt-1">
-                                  <strong>Diagnosis & Prescription:</strong>
-                                  <p className="mt-1 whitespace-pre-wrap">{appt.prescription}</p>
+                                <div className="bg-white border-2 border-slate-200 rounded-xl shadow-md overflow-hidden max-w-sm font-mono text-slate-800 mt-3 select-text">
+                                  {/* Header */}
+                                  <div className="bg-slate-50 p-3 border-b border-slate-200 flex justify-between items-center text-[10px] font-bold">
+                                    <span className="text-slate-900 tracking-wider">FEWA CITY HOSPITAL</span>
+                                    <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 text-[9px] font-extrabold uppercase shrink-0">
+                                      Rx E-Slip
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Doc info */}
+                                  <div className="p-3 bg-slate-50/50 border-b border-slate-100 flex justify-between text-[10px] font-medium leading-relaxed">
+                                    <div>
+                                      <p className="font-extrabold text-slate-950">Dr. {appt.doctor?.name || 'Specialist'}</p>
+                                      <p className="text-[9px] text-slate-400 font-semibold">{appt.doctor?.qualification}</p>
+                                    </div>
+                                    <div className="text-right text-slate-500 font-bold text-[9px]">
+                                      <p>{new Date(appt.date).toLocaleDateString()}</p>
+                                    </div>
+                                  </div>
+
+                                  {/* Rx symbol & clinical instructions */}
+                                  <div className="p-4 bg-white">
+                                    <div className="text-xl font-serif font-black text-[#156619] mb-2">Rx</div>
+                                    <p className="text-xs font-sans leading-relaxed whitespace-pre-wrap text-slate-700 border-l-2 border-[#156619]/20 pl-2">
+                                      {appt.prescription}
+                                    </p>
+                                  </div>
+
+                                  {/* Signature footer */}
+                                  <div className="p-2.5 bg-slate-50/20 border-t border-dashed border-slate-200 flex justify-between items-center text-[8px] text-slate-400">
+                                    <span className="italic">* Electronic Signature Verified</span>
+                                    <span className="font-serif font-bold text-[#156619]">FCH Nepal</span>
+                                  </div>
                                 </div>
                               ) : (
                                 appt.status === 'Completed' && <span className="text-slate-400">Prescription not specified.</span>
