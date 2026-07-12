@@ -222,6 +222,32 @@ const seedDepartments = [
       "Kidney stone prevention"
     ],
     image: "https://fch.com.np/wp-content/uploads/2026/03/nepro.jpg"
+  },
+  {
+    title: "Physiotherapy Department",
+    slug: "physiotherapy",
+    description: "The Physiotherapy Department helps patients restore physical function, mobility, and strength after injuries, surgery, or illnesses.",
+    extra: "",
+    points: [
+      "Post-operative rehabilitation",
+      "Pain management therapy",
+      "Sports injury recovery",
+      "Muscle and joint strengthening"
+    ],
+    image: "https://fch.com.np/wp-content/uploads/2026/04/bijay-bdr-pradhan.png"
+  },
+  {
+    title: "Oncology Department",
+    slug: "oncology",
+    description: "The Oncology Department provides comprehensive cancer care, focusing on early screening, diagnostics, and customized treatment plans.",
+    extra: "",
+    points: [
+      "Cancer screenings and diagnosis",
+      "Chemotherapy coordination",
+      "Palliative and supportive care",
+      "Multidisciplinary cancer care"
+    ],
+    image: "https://fch.com.np/wp-content/uploads/2026/03/docotorlast.jpg"
   }
 ];
 
