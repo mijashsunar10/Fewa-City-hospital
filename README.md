@@ -37,3 +37,7 @@ npm i -D nodemon morgan
 # Frontend Essentials
 npm create vite@latest . -- --template react
 npm i react-router-dom axios lucide-react framer-motion
+
+
+
+# https://test-admin.khalti.com

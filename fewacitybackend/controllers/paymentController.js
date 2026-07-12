@@ -144,6 +144,3 @@ export const verifyKhaltiPayment = async (req, res) => {
     res.status(500).json({ message: 'Internal server error during payment verification' });
   }
 };
-
-
-// c9#FNDcEh5PcssS
