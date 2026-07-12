@@ -32,6 +32,9 @@ const PatientDashboard = () => {
   const [bookingSuccess, setBookingSuccess] = useState('');
   const [bookingError, setBookingError] = useState('');
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
+  const [createdAppointment, setCreatedAppointment] = useState(null);
+  const [isInitiatingPayment, setIsInitiatingPayment] = useState(false);
+  const [paymentInitiateError, setPaymentInitiateError] = useState('');
 
   // Profile Edit State
   const [profileName, setProfileName] = useState('');
@@ -282,6 +285,8 @@ const PatientDashboard = () => {
     // Reset alerts
     setBookingSuccess('');
     setBookingError('');
+    setCreatedAppointment(null);
+    setPaymentInitiateError('');
     setProfileSuccess('');
     setProfileError('');
   };
@@ -290,6 +295,8 @@ const PatientDashboard = () => {
     e.preventDefault();
     setBookingSuccess('');
     setBookingError('');
+    setCreatedAppointment(null);
+    setPaymentInitiateError('');
 
     if (!bookingDept || !bookingDoc || !bookingDate || !bookingSlot) {
       setBookingError('Please fill out all required booking fields.');
@@ -302,7 +309,7 @@ const PatientDashboard = () => {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      await axios.post(API_BASE_URL + '/api/appointments', {
+      const res = await axios.post(API_BASE_URL + '/api/appointments', {
         department: bookingDept,
         doctor: bookingDoc,
         date: bookingDate,
@@ -310,20 +317,52 @@ const PatientDashboard = () => {
         symptoms: bookingSymptoms
       }, config);
 
-      setBookingSuccess('Appointment requested successfully! Wait for admin approval.');
-      setBookingDept('');
-      setBookingDoc('');
-      setBookingDate('');
-      setBookingSlot('');
-      setBookingSymptoms('');
+      setBookingSuccess('Appointment requested successfully!');
+      setCreatedAppointment(res.data);
 
-      // Refresh appointments
+      // Refresh appointments list in the background
       fetchData();
     } catch (err) {
       setBookingError(err.response?.data?.message || 'Failed to submit appointment booking.');
     } finally {
       setIsSubmittingBooking(false);
     }
+  };
+
+  const handleInitiateKhalti = async (appointmentId) => {
+    setIsInitiatingPayment(true);
+    setPaymentInitiateError('');
+    try {
+      const config = {
+        headers: { Authorization: `Bearer ${token}` }
+      };
+      const res = await axios.post(
+        `${API_BASE_URL}/api/payments/khalti/initiate`,
+        { appointmentId },
+        config
+      );
+      if (res.data.success && res.data.paymentUrl) {
+        window.location.href = res.data.paymentUrl;
+      } else {
+        setPaymentInitiateError('Failed to retrieve payment redirect URL from Khalti.');
+      }
+    } catch (err) {
+      console.error('Error initiating payment:', err);
+      setPaymentInitiateError(err.response?.data?.message || 'Khalti ePayment service is currently unavailable.');
+    } finally {
+      setIsInitiatingPayment(false);
+    }
+  };
+
+  const handleSkipPayment = () => {
+    setCreatedAppointment(null);
+    setBookingSuccess('');
+    setBookingDept('');
+    setBookingDoc('');
+    setBookingDate('');
+    setBookingSlot('');
+    setBookingSymptoms('');
+    setSearchParams({ tab: 'appointments' });
   };
 
   const handleProfileSubmit = async (e) => {
@@ -856,168 +895,242 @@ const PatientDashboard = () => {
               </div>
             )}
 
-            {/* BOOK APPOINTMENT TAB */}
             {activeTab === 'book' && (
               <div className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm max-w-2xl">
-                <div className="border-b border-slate-100 pb-4 mb-6">
-                  <h2 className="text-2xl font-extrabold text-slate-900">Request Appointment</h2>
-                  <p className="text-slate-500 text-sm">Submit your appointment details. Our administration team will review and approve the request.</p>
-                </div>
+                {createdAppointment ? (
+                  <div className="checkout-payment-panel space-y-6">
+                    <div className="text-center pb-4 border-b border-slate-100">
+                      <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 text-green-600 mb-4">
+                        <CheckCircle className="h-6 w-6 text-green-600" />
+                      </div>
+                      <h2 className="text-2xl font-black text-slate-900">Appointment Requested!</h2>
+                      <p className="text-slate-500 text-sm mt-1">Your slot reservation request has been registered.</p>
+                    </div>
 
-                {bookingSuccess && (
-                  <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-md mb-6 flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                    <span className="text-sm text-green-700 font-semibold">{bookingSuccess}</span>
-                  </div>
-                )}
+                    <div className="bg-slate-50 rounded-xl p-5 border border-slate-200/60 text-sm space-y-3">
+                      <h3 className="font-extrabold text-slate-800 text-base mb-2 border-b border-slate-200/50 pb-2">Booking Summary</h3>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-medium">Specialist Doctor:</span>
+                        <span className="font-bold text-slate-800">
+                          Dr. {doctors.find(d => d._id === createdAppointment.doctor)?.name || 'Specialist'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-medium">Clinical Department:</span>
+                        <span className="font-bold text-slate-800">
+                          {departments.find(d => d._id === createdAppointment.department)?.title || 'Clinical'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-medium">Date & Slot:</span>
+                        <span className="font-bold text-slate-800 text-right">
+                          {new Date(createdAppointment.date).toLocaleDateString()} at {createdAppointment.timeSlot}
+                        </span>
+                      </div>
+                      <div className="flex justify-between pt-2 border-t border-slate-200/50">
+                        <span className="text-slate-500 font-medium">Reservation Deposit Fee:</span>
+                        <span className="font-extrabold text-[#5c2d91] text-base">Rs. 150.00</span>
+                      </div>
+                    </div>
 
-                {bookingError && (
-                  <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md mb-6 flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-                    <span className="text-sm text-red-700 font-semibold">{bookingError}</span>
-                  </div>
-                )}
+                    {paymentInitiateError && (
+                      <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md flex items-start gap-3">
+                        <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+                        <span className="text-sm text-red-700 font-semibold">{paymentInitiateError}</span>
+                      </div>
+                    )}
 
-                <form onSubmit={handleBookingSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                        Clinical Department *
-                      </label>
-                      <select
-                        required
-                        className="block w-full border border-slate-200 rounded-lg p-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#156619]"
-                        value={bookingDept}
-                        onChange={(e) => {
-                          setBookingDept(e.target.value);
-                          setBookingDoc('');
-                        }}
+                    <div className="space-y-3">
+                      <button
+                        onClick={() => handleInitiateKhalti(createdAppointment._id)}
+                        disabled={isInitiatingPayment}
+                        className="w-full flex items-center justify-center gap-2 bg-[#5c2d91] hover:bg-[#4c2479] text-white font-extrabold py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition-all text-sm disabled:opacity-50"
                       >
-                        <option value="">-- Choose Department --</option>
-                        {departments.map(dept => (
-                          <option key={dept._id} value={dept._id}>{dept.title}</option>
-                        ))}
-                      </select>
-                    </div>
+                        {isInitiatingPayment ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                            <span>Directing to Khalti...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="bg-white/20 text-white rounded px-2 py-0.5 text-[10px] font-extrabold mr-1">Rs. 150</span>
+                            <span>Pay Booking Deposit via Khalti</span>
+                          </>
+                        )}
+                      </button>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                        Specialist Doctor *
-                      </label>
-                      <select
-                        required
-                        disabled={!bookingDept}
-                        className="block w-full border border-slate-200 rounded-lg p-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#156619] disabled:bg-slate-50"
-                        value={bookingDoc}
-                        onChange={(e) => setBookingDoc(e.target.value)}
+                      <button
+                        onClick={handleSkipPayment}
+                        disabled={isInitiatingPayment}
+                        className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl transition-colors text-sm disabled:opacity-50"
                       >
-                        <option value="">-- Select Specialist --</option>
-                        {filteredDoctors.map(doc => (
-                          <option key={doc._id} value={doc._id}>{doc.name} ({doc.qualification})</option>
-                        ))}
-                      </select>
+                        Skip & Pay Offline / Counter
+                      </button>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                        Preferred Date *
-                      </label>
-                      <input
-                        type="date"
-                        required
-                        min={new Date().toISOString().split('T')[0]}
-                        className="block w-full border border-slate-200 rounded-lg p-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#156619]"
-                        value={bookingDate}
-                        onChange={(e) => {
-                          setBookingDate(e.target.value);
-                          setBookingSlot(''); // Reset selected slot when date changes
-                        }}
-                      />
+                ) : (
+                  <>
+                    <div className="border-b border-slate-100 pb-4 mb-6">
+                      <h2 className="text-2xl font-extrabold text-slate-900">Request Appointment</h2>
+                      <p className="text-slate-500 text-sm">Submit your appointment details. Our administration team will review and approve the request.</p>
                     </div>
 
-                    <div className="sm:col-span-2">
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                        Preferred Time Slot *
-                      </label>
-                      
-                      {!bookingDoc || !bookingDate ? (
-                        <div className="bg-slate-50 border border-dashed border-slate-200 text-center py-6 text-sm text-slate-500 rounded-xl">
-                          Please select a specialist doctor and preferred date first.
-                        </div>
-                      ) : isFetchingSlots ? (
-                        <div className="flex items-center gap-2 py-4 justify-center text-sm text-slate-500">
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-emerald-700 border-t-transparent"></div>
-                          Checking slot availability...
-                        </div>
-                      ) : !isDoctorAvailableOnDay ? (
-                        <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl text-sm">
-                          <p className="font-semibold mb-1">
-                            Dr. {selectedDoctorObj?.name} is not available on {selectedDayOfWeek}s.
-                          </p>
-                          <p className="text-xs text-amber-700">
-                            Available days: {(selectedDoctorObj?.availableDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']).join(', ')}
-                          </p>
-                        </div>
-                      ) : (
+                    {bookingSuccess && (
+                      <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-md mb-6 flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                        <span className="text-sm text-green-700 font-semibold">{bookingSuccess}</span>
+                      </div>
+                    )}
+
+                    {bookingError && (
+                      <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md mb-6 flex items-start gap-3">
+                        <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+                        <span className="text-sm text-red-700 font-semibold">{bookingError}</span>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleBookingSubmit} className="space-y-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
-                          {slotCheckError && <p className="text-xs text-red-600 mb-2">{slotCheckError}</p>}
-                          {filteredSlots.length === 0 ? (
-                            <div className="bg-slate-50 border border-slate-200 text-center py-4 text-sm text-slate-500 rounded-xl">
-                              No slots configured for this doctor's hours.
+                          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                            Clinical Department *
+                          </label>
+                          <select
+                            required
+                            className="block w-full border border-slate-200 rounded-lg p-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#156619]"
+                            value={bookingDept}
+                            onChange={(e) => {
+                              setBookingDept(e.target.value);
+                              setBookingDoc('');
+                            }}
+                          >
+                            <option value="">-- Choose Department --</option>
+                            {departments.map(dept => (
+                              <option key={dept._id} value={dept._id}>{dept.title}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                            Specialist Doctor *
+                          </label>
+                          <select
+                            required
+                            disabled={!bookingDept}
+                            className="block w-full border border-slate-200 rounded-lg p-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#156619] disabled:bg-slate-50"
+                            value={bookingDoc}
+                            onChange={(e) => setBookingDoc(e.target.value)}
+                          >
+                            <option value="">-- Select Specialist --</option>
+                            {filteredDoctors.map(doc => (
+                              <option key={doc._id} value={doc._id}>{doc.name} ({doc.qualification})</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                            Preferred Date *
+                          </label>
+                          <input
+                            type="date"
+                            required
+                            min={new Date().toISOString().split('T')[0]}
+                            className="block w-full border border-slate-200 rounded-lg p-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#156619]"
+                            value={bookingDate}
+                            onChange={(e) => {
+                              setBookingDate(e.target.value);
+                              setBookingSlot(''); // Reset selected slot when date changes
+                            }}
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                            Preferred Time Slot *
+                          </label>
+                          
+                          {!bookingDoc || !bookingDate ? (
+                            <div className="bg-slate-50 border border-dashed border-slate-200 text-center py-6 text-sm text-slate-500 rounded-xl">
+                              Please select a specialist doctor and preferred date first.
+                            </div>
+                          ) : isFetchingSlots ? (
+                            <div className="flex items-center gap-2 py-4 justify-center text-sm text-slate-500">
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-emerald-700 border-t-transparent"></div>
+                              Checking slot availability...
+                            </div>
+                          ) : !isDoctorAvailableOnDay ? (
+                            <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl text-sm">
+                              <p className="font-semibold mb-1">
+                                Dr. {selectedDoctorObj?.name} is not available on {selectedDayOfWeek}s.
+                              </p>
+                              <p className="text-xs text-amber-700">
+                                Available days: {(selectedDoctorObj?.availableDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']).join(', ')}
+                              </p>
                             </div>
                           ) : (
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                              {filteredSlots.map(slot => {
-                                const isBooked = bookedSlots.includes(slot);
-                                const isSelected = bookingSlot === slot;
-                                return (
-                                  <button
-                                    key={slot}
-                                    type="button"
-                                    disabled={isBooked}
-                                    onClick={() => setBookingSlot(slot)}
-                                    className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-all ${
-                                      isBooked 
-                                        ? 'bg-slate-100 border-slate-200 text-slate-400 line-through cursor-not-allowed'
-                                        : isSelected
-                                          ? 'bg-[#156619] border-[#156619] text-white shadow-sm font-bold'
-                                          : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                                    }`}
-                                  >
-                                    {slot} {isBooked && <span className="block text-[9px] opacity-75">(Booked)</span>}
-                                  </button>
-                                );
-                              })}
+                            <div>
+                              {slotCheckError && <p className="text-xs text-red-600 mb-2">{slotCheckError}</p>}
+                              {filteredSlots.length === 0 ? (
+                                <div className="bg-slate-50 border border-slate-200 text-center py-4 text-sm text-slate-500 rounded-xl">
+                                  No slots configured for this doctor's hours.
+                                </div>
+                              ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                  {filteredSlots.map(slot => {
+                                    const isBooked = bookedSlots.includes(slot);
+                                    const isSelected = bookingSlot === slot;
+                                    return (
+                                      <button
+                                        key={slot}
+                                        type="button"
+                                        disabled={isBooked}
+                                        onClick={() => setBookingSlot(slot)}
+                                        className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-all ${
+                                          isBooked 
+                                            ? 'bg-slate-100 border-slate-200 text-slate-400 line-through cursor-not-allowed'
+                                            : isSelected
+                                              ? 'bg-[#156619] border-[#156619] text-white shadow-sm font-bold'
+                                              : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                                        }`}
+                                      >
+                                        {slot} {isBooked && <span className="block text-[9px] opacity-75">(Booked)</span>}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  </div>
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                      Describe Symptoms / Reasons for Visit
-                    </label>
-                    <textarea
-                      placeholder="List any symptoms, current complications, or health inquiries here..."
-                      rows={4}
-                      className="block w-full border border-slate-200 rounded-lg p-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#156619] resize-none"
-                      value={bookingSymptoms}
-                      onChange={(e) => setBookingSymptoms(e.target.value)}
-                    ></textarea>
-                  </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                          Describe Symptoms / Reasons for Visit
+                        </label>
+                        <textarea
+                          placeholder="List any symptoms, current complications, or health inquiries here..."
+                          rows={4}
+                          className="block w-full border border-slate-200 rounded-lg p-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#156619] resize-none"
+                          value={bookingSymptoms}
+                          onChange={(e) => setBookingSymptoms(e.target.value)}
+                        ></textarea>
+                      </div>
 
-                  <button
-                    type="submit"
-                    disabled={isSubmittingBooking}
-                    className="w-full sm:w-auto px-6 py-3 border border-transparent font-bold text-sm rounded-lg text-white bg-[#156619] hover:bg-[#0f4d12] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#156619] disabled:opacity-50"
-                  >
-                    {isSubmittingBooking ? 'Submitting...' : 'Submit Booking Request'}
-                  </button>
-                </form>
+                      <button
+                        type="submit"
+                        disabled={isSubmittingBooking}
+                        className="w-full sm:w-auto px-6 py-3 border border-transparent font-bold text-sm rounded-lg text-white bg-[#156619] hover:bg-[#0f4d12] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#156619] disabled:opacity-50"
+                      >
+                        {isSubmittingBooking ? 'Submitting...' : 'Submit Booking Request'}
+                      </button>
+                    </form>
+                  </>
+                )}
               </div>
             )}
 
@@ -1054,14 +1167,25 @@ const PatientDashboard = () => {
                               <div className="text-xs text-slate-400">{appt.timeSlot}</div>
                             </td>
                             <td className="p-3 text-slate-500 text-sm">{appt.department?.title || 'N/A'}</td>
-                            <td className="p-3">
-                              <span className={`text-xs font-bold px-2.5 py-0.5 rounded border inline-block ${
-                                appt.status === 'Approved' ? 'bg-green-50 text-green-700 border-green-200' :
-                                appt.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                                appt.status === 'Completed' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-red-50 text-red-700 border-red-200'
-                              }`}>
-                                {appt.status}
-                              </span>
+                            <td className="p-3 space-y-1.5">
+                              <div>
+                                <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded border uppercase inline-block ${
+                                  appt.status === 'Approved' ? 'bg-green-50 text-green-700 border-green-200' :
+                                  appt.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                  appt.status === 'Completed' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-red-50 text-red-700 border-red-200'
+                                }`}>
+                                  {appt.status}
+                                </span>
+                              </div>
+                              <div>
+                                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded border uppercase inline-block ${
+                                  appt.paymentStatus === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                  appt.paymentStatus === 'Pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                  'bg-slate-50 text-slate-600 border-slate-200'
+                                }`}>
+                                  {appt.paymentStatus === 'Paid' ? 'Paid (Khalti)' : appt.paymentStatus === 'Pending' ? 'Pay Pending' : 'Unpaid'}
+                                </span>
+                              </div>
                             </td>
                             <td className="p-3 max-w-[200px] text-xs">
                               {appt.symptoms && (
@@ -1146,14 +1270,24 @@ const PatientDashboard = () => {
                               )}
                             </td>
                             <td className="p-3 text-right">
-                              {(appt.status === 'Pending' || appt.status === 'Approved') && (
-                                <button
-                                  onClick={() => handleCancelAppointment(appt._id)}
-                                  className="text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 py-1 px-2.5 rounded transition-colors"
-                                >
-                                  Cancel Request
-                                </button>
-                              )}
+                              <div className="flex flex-col items-end gap-2">
+                                {appt.paymentStatus !== 'Paid' && appt.status !== 'Cancelled' && (
+                                  <button
+                                    onClick={() => handleInitiateKhalti(appt._id)}
+                                    className="text-xs font-extrabold text-white bg-[#5c2d91] hover:bg-[#4c2479] py-1.5 px-3 rounded-lg transition-all shadow-sm inline-flex items-center gap-1 shrink-0"
+                                  >
+                                    Pay Rs. 150
+                                  </button>
+                                )}
+                                {(appt.status === 'Pending' || appt.status === 'Approved') && (
+                                  <button
+                                    onClick={() => handleCancelAppointment(appt._id)}
+                                    className="text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 py-1.5 px-3 rounded-lg transition-colors shrink-0"
+                                  >
+                                    Cancel Request
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}

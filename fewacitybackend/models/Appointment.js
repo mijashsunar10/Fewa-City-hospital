@@ -43,6 +43,28 @@ const appointmentSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    paymentStatus: {
+      type: String,
+      enum: ['Unpaid', 'Pending', 'Paid'],
+      default: 'Unpaid',
+    },
+    paymentMethod: {
+      type: String,
+      enum: ['None', 'Khalti', 'eSewa'],
+      default: 'None',
+    },
+    amount: {
+      type: Number,
+      default: 0,
+    },
+    khaltiPidx: {
+      type: String,
+      default: '',
+    },
+    khaltiTransactionId: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

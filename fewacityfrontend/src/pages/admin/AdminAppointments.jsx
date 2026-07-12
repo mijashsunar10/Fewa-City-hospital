@@ -310,23 +310,40 @@ const AdminAppointments = () => {
                       <div style={{ fontSize: '12px', color: '#64748b' }}>{appt.timeSlot}</div>
                     </td>
                     <td>
-                      <span style={{
-                        padding: '4px 10px',
-                        borderRadius: '12px',
-                        fontSize: '11px',
-                        fontWeight: 'bold',
-                        color: appt.status === 'Approved' ? '#15803d' : 
-                               appt.status === 'Pending' ? '#a16207' : 
-                               appt.status === 'Completed' ? '#1d4ed8' : '#b91c1c',
-                        backgroundColor: appt.status === 'Approved' ? '#f0fdf4' : 
-                                         appt.status === 'Pending' ? '#fef9c3' : 
-                                         appt.status === 'Completed' ? '#eff6ff' : '#fef2f2',
-                        border: `1px solid ${appt.status === 'Approved' ? '#bbf7d0' : 
-                                              appt.status === 'Pending' ? '#fef08a' : 
-                                              appt.status === 'Completed' ? '#bfdbfe' : '#fecaca'}`
-                      }}>
-                        {appt.status}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
+                        <span style={{
+                          padding: '4px 10px',
+                          borderRadius: '12px',
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                          color: appt.status === 'Approved' ? '#15803d' : 
+                                 appt.status === 'Pending' ? '#a16207' : 
+                                 appt.status === 'Completed' ? '#1d4ed8' : '#b91c1c',
+                          backgroundColor: appt.status === 'Approved' ? '#f0fdf4' : 
+                                           appt.status === 'Pending' ? '#fef9c3' : 
+                                           appt.status === 'Completed' ? '#eff6ff' : '#fef2f2',
+                          border: `1px solid ${appt.status === 'Approved' ? '#bbf7d0' : 
+                                                appt.status === 'Pending' ? '#fef08a' : 
+                                                appt.status === 'Completed' ? '#bfdbfe' : '#fecaca'}`
+                        }}>
+                          {appt.status}
+                        </span>
+                        <span style={{
+                          padding: '2px 8px',
+                          borderRadius: '8px',
+                          fontSize: '10px',
+                          fontWeight: '800',
+                          textTransform: 'uppercase',
+                          color: appt.paymentStatus === 'Paid' ? '#0f766e' : 
+                                 appt.paymentStatus === 'Pending' ? '#b45309' : '#475569',
+                          backgroundColor: appt.paymentStatus === 'Paid' ? '#f0fdfa' : 
+                                           appt.paymentStatus === 'Pending' ? '#fffbeb' : '#f1f5f9',
+                          border: `1px solid ${appt.paymentStatus === 'Paid' ? '#99f6e4' : 
+                                                appt.paymentStatus === 'Pending' ? '#fde68a' : '#cbd5e1'}`
+                        }}>
+                          {appt.paymentStatus === 'Paid' ? `Paid: Rs.${appt.amount}` : appt.paymentStatus === 'Pending' ? 'Pay Pending' : 'Unpaid'}
+                        </span>
+                      </div>
                     </td>
                     <td className="doctor-table-actions">
                       {appt.status === 'Pending' && (
@@ -434,6 +451,21 @@ const AdminAppointments = () => {
                     <option value="Cancelled">Cancelled</option>
                     <option value="Completed">Completed / Visited</option>
                   </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div>
+                  <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 'bold' }}>Payment Status</label>
+                  <div style={{ fontWeight: 'bold', fontSize: '13px', color: selectedAppt.paymentStatus === 'Paid' ? '#0f766e' : '#475569' }}>
+                    {selectedAppt.paymentStatus === 'Paid' ? 'PAID (Online Gateway)' : 'UNPAID / Walk-In'}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 'bold' }}>Amount & TXN ID</label>
+                  <div style={{ fontSize: '13px', color: '#0f172a', fontWeight: '600' }}>
+                    {selectedAppt.paymentStatus === 'Paid' ? `Rs. ${selectedAppt.amount} (TXN: ${selectedAppt.khaltiTransactionId || 'N/A'})` : 'Rs. 0.00'}
+                  </div>
                 </div>
               </div>
 
