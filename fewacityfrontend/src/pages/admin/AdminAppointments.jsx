@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Search, Mail, Calendar, Eye, Edit2, Check, X } from 'lucide-react';
+import { Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Search, Mail, Calendar, Eye, Edit2, Check, X, Download } from 'lucide-react';
 import axios from 'axios';
 import './AdminDashboard.css';
 import API_BASE_URL from '../../config/api';
@@ -60,6 +60,38 @@ const AdminAppointments = () => {
       fetchAppointments();
     }
   }, [user, token]);
+
+  const handleDownloadPrescription = async (apptId, doctorName) => {
+    try {
+      const config = {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob',
+      };
+      const res = await axios.get(
+        `${API_BASE_URL}/api/appointments/${apptId}/prescription/download`,
+        config
+      );
+
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Format file name professionally
+      const cleanDocName = doctorName ? doctorName.replace(/\s+/g, '_').replace(/Dr\._?/g, '') : 'Doctor';
+      link.setAttribute('download', `FCH_Prescription_${cleanDocName}_${apptId.slice(-6)}.pdf`);
+
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download prescription PDF:', error);
+      alert('Failed to download prescription PDF. Please try again.');
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -435,6 +467,30 @@ const AdminAppointments = () => {
               </div>
 
               <div className="modal-footer-actions">
+                {selectedAppt.prescription && (
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadPrescription(selectedAppt._id, selectedAppt.doctor?.name)}
+                    className="modal-download-btn"
+                    style={{
+                      marginRight: 'auto',
+                      backgroundColor: '#10b981',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontWeight: 'bold',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <Download className="action-icon" style={{ width: '15px', height: '15px' }} />
+                    Download PDF
+                  </button>
+                )}
                 <button type="button" onClick={() => setIsModalOpen(false)} className="modal-cancel-btn">Cancel</button>
                 <button type="submit" disabled={isSubmittingAction} className="modal-submit-btn">
                   {isSubmittingAction ? 'Updating...' : 'Save Settings'}

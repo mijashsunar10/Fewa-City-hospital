@@ -396,7 +396,7 @@
 /* VISUAL ANALYTICS CLASSES */
 .analytics-grid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
   gap: 30px;
   margin-bottom: 40px;
 }

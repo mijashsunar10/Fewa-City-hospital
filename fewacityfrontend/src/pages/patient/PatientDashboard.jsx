@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   User, Calendar, FileText, ClipboardList, LogOut, CheckCircle, Clock, XCircle, 
   UserCheck, AlertCircle, Edit, MapPin, Phone, Award, ShieldAlert, BookOpen, ArrowLeft,
-  Bell, Check, Activity
+  Bell, Check, Activity, Download
 } from 'lucide-react';
 import axios from 'axios';
 import API_BASE_URL from '../../config/api';
@@ -349,6 +349,51 @@ const PatientDashboard = () => {
       setProfileSuccess('Profile details updated successfully!');
     } else {
       setProfileError(result.error);
+    }
+  };
+
+  const [downloadingIds, setDownloadingIds] = useState({});
+  const [expandedAppts, setExpandedAppts] = useState({});
+
+  const toggleExpandAppt = (id) => {
+    setExpandedAppts((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const handleDownloadPrescription = async (apptId, doctorName) => {
+    try {
+      setDownloadingIds((prev) => ({ ...prev, [apptId]: true }));
+      const config = {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob',
+      };
+      const res = await axios.get(
+        `${API_BASE_URL}/api/appointments/${apptId}/prescription/download`,
+        config
+      );
+
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Format file name professionally
+      const cleanDocName = doctorName ? doctorName.replace(/\s+/g, '_').replace(/Dr\._?/g, '') : 'Doctor';
+      link.setAttribute('download', `FCH_Prescription_${cleanDocName}_${apptId.slice(-6)}.pdf`);
+
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download prescription PDF:', error);
+      alert('Failed to download prescription PDF. Please try again.');
+    } finally {
+      setDownloadingIds((prev) => ({ ...prev, [apptId]: false }));
     }
   };
 
@@ -1025,39 +1070,71 @@ const PatientDashboard = () => {
                                 </div>
                               )}
                               {appt.prescription ? (
-                                <div className="bg-white border-2 border-slate-200 rounded-xl shadow-md overflow-hidden max-w-sm font-mono text-slate-800 mt-3 select-text">
-                                  {/* Header */}
-                                  <div className="bg-slate-50 p-3 border-b border-slate-200 flex justify-between items-center text-[10px] font-bold">
-                                    <span className="text-slate-900 tracking-wider">FEWA CITY HOSPITAL</span>
-                                    <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 text-[9px] font-extrabold uppercase shrink-0">
-                                      Rx E-Slip
-                                    </span>
-                                  </div>
+                                <div className="mt-2 space-y-2">
+                                  <button
+                                    onClick={() => toggleExpandAppt(appt._id)}
+                                    className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-bold transition-all shadow-sm"
+                                  >
+                                    <FileText className="h-3.5 w-3.5" />
+                                    <span>{expandedAppts[appt._id] ? 'Hide Rx E-Slip' : 'View Rx E-Slip'}</span>
+                                  </button>
                                   
-                                  {/* Doc info */}
-                                  <div className="p-3 bg-slate-50/50 border-b border-slate-100 flex justify-between text-[10px] font-medium leading-relaxed">
-                                    <div>
-                                      <p className="font-extrabold text-slate-950">Dr. {appt.doctor?.name || 'Specialist'}</p>
-                                      <p className="text-[9px] text-slate-400 font-semibold">{appt.doctor?.qualification}</p>
-                                    </div>
-                                    <div className="text-right text-slate-500 font-bold text-[9px]">
-                                      <p>{new Date(appt.date).toLocaleDateString()}</p>
-                                    </div>
-                                  </div>
+                                  {expandedAppts[appt._id] && (
+                                    <div className="mt-2 space-y-2 max-w-sm transition-all duration-300">
+                                      <div className="bg-white border-2 border-slate-200 rounded-xl shadow-md overflow-hidden font-mono text-slate-800 select-text">
+                                        {/* Header */}
+                                        <div className="bg-slate-50 p-3 border-b border-slate-200 flex justify-between items-center text-[10px] font-bold">
+                                          <span className="text-slate-900 tracking-wider">FEWA CITY HOSPITAL</span>
+                                          <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 text-[9px] font-extrabold uppercase shrink-0">
+                                            Rx E-Slip
+                                          </span>
+                                        </div>
+                                        
+                                        {/* Doc info */}
+                                        <div className="p-3 bg-slate-50/50 border-b border-slate-100 flex justify-between text-[10px] font-medium leading-relaxed">
+                                          <div>
+                                            <p className="font-extrabold text-slate-950">Dr. {appt.doctor?.name || 'Specialist'}</p>
+                                            <p className="text-[9px] text-slate-400 font-semibold">{appt.doctor?.qualification}</p>
+                                          </div>
+                                          <div className="text-right text-slate-500 font-bold text-[9px]">
+                                            <p>{new Date(appt.date).toLocaleDateString()}</p>
+                                          </div>
+                                        </div>
 
-                                  {/* Rx symbol & clinical instructions */}
-                                  <div className="p-4 bg-white">
-                                    <div className="text-xl font-serif font-black text-[#156619] mb-2">Rx</div>
-                                    <p className="text-xs font-sans leading-relaxed whitespace-pre-wrap text-slate-700 border-l-2 border-[#156619]/20 pl-2">
-                                      {appt.prescription}
-                                    </p>
-                                  </div>
+                                        {/* Rx symbol & clinical instructions */}
+                                        <div className="p-4 bg-white">
+                                          <div className="text-xl font-serif font-black text-[#156619] mb-2">Rx</div>
+                                          <p className="text-xs font-sans leading-relaxed whitespace-pre-wrap text-slate-700 border-l-2 border-[#156619]/20 pl-2">
+                                            {appt.prescription}
+                                          </p>
+                                        </div>
 
-                                  {/* Signature footer */}
-                                  <div className="p-2.5 bg-slate-50/20 border-t border-dashed border-slate-200 flex justify-between items-center text-[8px] text-slate-400">
-                                    <span className="italic">* Electronic Signature Verified</span>
-                                    <span className="font-serif font-bold text-[#156619]">FCH Nepal</span>
-                                  </div>
+                                        {/* Signature footer */}
+                                        <div className="p-2.5 bg-slate-50/20 border-t border-dashed border-slate-200 flex justify-between items-center text-[8px] text-slate-400">
+                                          <span className="italic">* Electronic Signature Verified</span>
+                                          <span className="font-serif font-bold text-[#156619]">FCH Nepal</span>
+                                        </div>
+                                      </div>
+                                      
+                                      <button
+                                        onClick={() => handleDownloadPrescription(appt._id, appt.doctor?.name)}
+                                        disabled={downloadingIds[appt._id]}
+                                        className="w-full flex items-center justify-center gap-2 bg-emerald-700 hover:bg-[#156619] text-white font-bold py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all text-xs disabled:opacity-50"
+                                      >
+                                        {downloadingIds[appt._id] ? (
+                                          <>
+                                            <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></div>
+                                            <span>Generating PDF...</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Download className="h-3.5 w-3.5" />
+                                            <span>Download Prescription PDF</span>
+                                          </>
+                                        )}
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
                               ) : (
                                 appt.status === 'Completed' && <span className="text-slate-400">Prescription not specified.</span>

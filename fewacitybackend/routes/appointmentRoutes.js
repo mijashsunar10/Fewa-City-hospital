@@ -6,6 +6,7 @@ import {
   getAppointments,
   updateAppointment,
   getBookedSlots,
+  downloadPrescriptionPDF,
 } from '../controllers/appointmentController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -16,6 +17,7 @@ router.post('/', protect, createAppointment);
 router.get('/my', protect, getPatientAppointments);
 router.put('/:id/cancel', protect, cancelAppointment);
 router.get('/booked-slots', protect, getBookedSlots);
+router.get('/:id/prescription/download', protect, downloadPrescriptionPDF);
 
 // Admin-only routes
 router.get('/', protect, admin, getAppointments);

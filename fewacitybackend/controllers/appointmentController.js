@@ -3,6 +3,7 @@ import Doctor from '../models/Doctor.js';
 import Department from '../models/Department.js';
 import Notification from '../models/Notification.js';
 import { sendBookingConfirmationEmail, sendAppointmentStatusUpdateEmail } from '../utils/mailer.js';
+import { generatePrescriptionPDF } from '../utils/pdfGenerator.js';
 
 // @desc    Create a new appointment booking
 // @route   POST /api/appointments
@@ -302,3 +303,45 @@ export const getBookedSlots = async (req, res) => {
     res.status(500).json({ message: 'Failed to retrieve booked slots', error: error.message });
   }
 };
+
+// @desc    Download prescription PDF
+// @route   GET /api/appointments/:id/prescription/download
+// @access  Private (Patient / Admin)
+export const downloadPrescriptionPDF = async (req, res) => {
+  try {
+    const appointment = await Appointment.findById(req.params.id)
+      .populate('patient', 'name email phone dob gender bloodGroup')
+      .populate('doctor', 'name qualification')
+      .populate('department', 'title');
+
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    // Verify ownership (only the matching patient or admin can download)
+    if (appointment.patient._id.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to download this prescription' });
+    }
+
+    // Check if prescription or completion is present
+    if (!appointment.prescription && appointment.status !== 'Completed') {
+      return res.status(400).json({ message: 'Prescription is not available for this appointment' });
+    }
+
+    // Set response headers for PDF stream
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=Prescription_${appointment._id}.pdf`
+    );
+
+    // Stream prescription PDF directly to client response
+    await generatePrescriptionPDF(appointment, res);
+  } catch (error) {
+    console.error('PDF Generation Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ message: 'Failed to generate PDF prescription', error: error.message });
+    }
+  }
+};
+

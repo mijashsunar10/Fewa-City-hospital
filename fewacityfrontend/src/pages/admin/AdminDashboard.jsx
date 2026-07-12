@@ -1,10 +1,25 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, Shield, Users, Briefcase, LayoutGrid, Activity, Calendar, Mail, TrendingUp, BarChart3, PieChart } from 'lucide-react';
+import { LogOut, Shield, Users, Briefcase, LayoutGrid, Activity, Calendar, Mail, TrendingUp, BarChart3, PieChart as PieChartIcon } from 'lucide-react';
 import axios from 'axios';
 import './AdminDashboard.css';
 import API_BASE_URL from '../../config/api';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend
+} from 'recharts';
 
 const AdminDashboard = () => {
   const { user, token, logout, loading } = useAuth();
@@ -287,6 +302,59 @@ const AdminDashboard = () => {
       .slice(0, 4);
   }, [filteredAppointments]);
 
+  // 5. Monthly Earnings / Patient Growth calculations (Simulated based on appointments)
+  const monthlyFinanceData = useMemo(() => {
+    const monthlyData = {};
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    // Pre-populate last 6 months to make it look full and dynamic
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      monthlyData[key] = {
+        monthKey: key,
+        label: `${monthNames[d.getMonth()]} ${d.getFullYear().toString().slice(-2)}`,
+        patients: 0,
+        earnings: 0
+      };
+    }
+
+    appointments.forEach(appt => {
+      if (!appt.date) return;
+      const d = new Date(appt.date);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      
+      // Standard simulated consulting fee per department
+      const deptName = appt.department?.title || 'General';
+      let fee = 50; // default base fee
+      if (deptName.includes('Cardi')) fee = 120;
+      else if (deptName.includes('Radi')) fee = 90;
+      else if (deptName.includes('Dental')) fee = 70;
+      else if (deptName.includes('Surge')) fee = 150;
+      else if (deptName.includes('Pediat')) fee = 80;
+
+      if (monthlyData[key]) {
+        monthlyData[key].patients += 1;
+        if (appt.status === 'Completed' || appt.status === 'Approved') {
+          monthlyData[key].earnings += fee;
+        }
+      } else {
+        const label = `${monthNames[d.getMonth()]} ${d.getFullYear().toString().slice(-2)}`;
+        monthlyData[key] = {
+          monthKey: key,
+          label,
+          patients: 1,
+          earnings: (appt.status === 'Completed' || appt.status === 'Approved') ? fee : 0
+        };
+      }
+    });
+
+    return Object.values(monthlyData)
+      .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
+      .slice(-6); // Only show the last 6 months
+  }, [appointments]);
+
   if (loading || !user) {
     return (
       <div className="admin-loading-screen">
@@ -469,182 +537,132 @@ const AdminDashboard = () => {
 
         {/* VISUAL ANALYTICS PANEL */}
         <section className="analytics-grid">
-          {/* Chart 1: Daily Booking Trend */}
+          {/* Chart 1: Appointments Over Time */}
           <div className="content-card analytics-card">
-            <div className="card-header-with-icon">
+            <div className="card-header-with-icon" style={{ marginBottom: '20px' }}>
               <div className="header-title-area">
                 <TrendingUp className="header-icon trend-color" />
                 <div>
-                  <h2>Weekly Booking Trends</h2>
-                  <p className="card-subtitle">Appointment traffic volume for the last 7 days</p>
+                  <h2>Appointments Over Time</h2>
+                  <p className="card-subtitle">Appointment traffic spline trend line (7 days)</p>
                 </div>
               </div>
             </div>
-
-            <div className="chart-container">
+            <div className="chart-container" style={{ minHeight: '260px' }}>
               {filteredAppointments.length === 0 ? (
                 <div className="no-chart-data">
-                  <p>No appointment data available to render trend chart.</p>
+                  <p>No appointment data available.</p>
                 </div>
               ) : (
-                <div className="svg-chart-wrapper">
-                  <svg viewBox="0 0 600 260" className="trend-svg-chart">
-                    {/* Background Grid Lines */}
-                    {[0, 25, 50, 75, 100].map((pct, idx) => {
-                      const y = 40 + idx * 40;
-                      const maxCount = Math.max(...weeklyTrendData.map(d => d.count), 4);
-                      const gridVal = Math.round(((100 - pct) / 100) * maxCount);
-                      return (
-                        <g key={pct} className="grid-group">
-                          <line x1="50" y1={y} x2="560" y2={y} stroke="#e2e8f0" strokeDasharray="4 4" strokeWidth="1" />
-                          <text x="25" y={y + 4} fill="#94a3b8" fontSize="11px" textAnchor="middle">
-                            {gridVal}
-                          </text>
-                        </g>
-                      );
-                    })}
-
-                    {/* Render Columns */}
-                    {weeklyTrendData.map((day, idx) => {
-                      const maxCount = Math.max(...weeklyTrendData.map(d => d.count), 4);
-                      const chartHeight = 160;
-                      const barHeight = maxCount > 0 ? (day.count / maxCount) * chartHeight : 0;
-                      const barWidth = 36;
-                      const spacing = (510 - (7 * barWidth)) / 8;
-                      const x = 50 + spacing + idx * (barWidth + spacing);
-                      const y = 200 - barHeight;
-
-                      return (
-                        <g key={day.dateStr} className="bar-group">
-                          {/* Invisible hover helper rect for better mouse hover target */}
-                          <rect
-                            x={x - 10}
-                            y={35}
-                            width={barWidth + 20}
-                            height={175}
-                            fill="transparent"
-                            style={{ cursor: 'pointer' }}
-                            onMouseEnter={() => setHoveredBarIndex(idx)}
-                            onMouseLeave={() => setHoveredBarIndex(null)}
-                          />
-
-                          {/* Actual Bar */}
-                          <rect
-                            x={x}
-                            y={y}
-                            width={barWidth}
-                            height={Math.max(barHeight, 4)} // Ensure at least a tiny sliver is shown
-                            rx="8"
-                            ry="8"
-                            className="trend-bar-rect"
-                            style={{
-                              transition: 'all 0.3s ease',
-                              fill: hoveredBarIndex === idx ? '#10b981' : 'url(#trendGradient)',
-                              filter: hoveredBarIndex === idx ? 'drop-shadow(0 4px 10px rgba(16, 185, 129, 0.45))' : 'none',
-                              cursor: 'pointer'
-                            }}
-                          />
-
-                          {/* Value label above bar */}
-                          {(day.count > 0 || hoveredBarIndex === idx) && (
-                            <g className="bar-value-label" style={{ opacity: hoveredBarIndex === idx ? 1 : 0.85, transition: 'opacity 0.2s' }}>
-                              <rect
-                                x={x + barWidth / 2 - 16}
-                                y={y - 28}
-                                width="32"
-                                height="20"
-                                rx="6"
-                                fill="#0f172a"
-                              />
-                              <text
-                                x={x + barWidth / 2}
-                                y={y - 15}
-                                fill="#ffffff"
-                                fontSize="10px"
-                                fontWeight="bold"
-                                textAnchor="middle"
-                              >
-                                {day.count}
-                              </text>
-                            </g>
-                          )}
-
-                          {/* Day Label */}
-                          <text x={x + barWidth / 2} y="225" fill="#64748b" fontSize="12px" fontWeight="600" textAnchor="middle">
-                            {day.label}
-                          </text>
-                        </g>
-                      );
-                    })}
-                    
-                    {/* Definitions for Gradient */}
-                    <defs>
-                      <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" />
-                        <stop offset="100%" stopColor="#34d399" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                </div>
+                <ResponsiveContainer width="100%" height={260}>
+                  <LineChart data={weeklyTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '12px' }}
+                      labelStyle={{ fontWeight: 'bold', color: '#34d399' }}
+                    />
+                    <Line type="monotone" dataKey="count" name="Appointments" stroke="#10b981" strokeWidth={3} activeDot={{ r: 6 }} dot={{ stroke: '#10b981', strokeWidth: 2, r: 4, fill: '#fff' }} />
+                  </LineChart>
+                </ResponsiveContainer>
               )}
             </div>
           </div>
 
-          {/* Chart 2: Department Share & Traffic */}
+          {/* Chart 2: Most Visited Departments */}
           <div className="content-card analytics-card">
-            <div className="card-header-with-icon">
+            <div className="card-header-with-icon" style={{ marginBottom: '20px' }}>
               <div className="header-title-area">
-                <BarChart3 className="header-icon dept-color" />
+                <PieChartIcon className="header-icon dept-color" />
                 <div>
-                  <h2>Department Appointment Share</h2>
-                  <p className="card-subtitle">Appointment distribution across clinical divisions</p>
+                  <h2>Department Visit Share</h2>
+                  <p className="card-subtitle">Appointment distribution across clinics</p>
                 </div>
               </div>
             </div>
-
-            <div className="dept-distribution-list" style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginTop: '10px' }}>
+            <div className="chart-container" style={{ minHeight: '260px' }}>
               {deptChartData.length === 0 ? (
                 <div className="no-chart-data">
-                  <p>No department records found or appointments booked.</p>
+                  <p>No department data available.</p>
                 </div>
               ) : (
-                deptChartData.slice(0, 5).map((dept, index) => {
-                  const hue = (index * 135) % 360;
-                  const barColor = `hsl(${hue}, 75%, 45%)`;
-                  
-                  return (
-                    <div key={dept.name} className="dept-share-item">
-                      <div className="dept-share-meta" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13.5px' }}>
-                        <span className="dept-share-name" style={{ fontWeight: '600', color: '#334155' }}>{dept.name}</span>
-                        <span className="dept-share-stats" style={{ color: '#64748b' }}>
-                          <strong style={{ color: '#0f172a' }}>{dept.count}</strong> {dept.count === 1 ? 'appt' : 'appts'} ({dept.percentage}%)
-                        </span>
-                      </div>
-                      <div className="dept-share-progress-bg" style={{ backgroundColor: '#f1f5f9', height: '10px', borderRadius: '50px', overflow: 'hidden' }}>
-                        <div
-                          className="dept-share-progress-bar"
-                          style={{
-                            height: '100%',
-                            width: `${dept.percentage}%`,
-                            background: `linear-gradient(90deg, ${barColor} 0%, hsl(${hue}, 85%, 55%) 100%)`,
-                            borderRadius: '50px',
-                            transition: 'width 0.8s ease-in-out'
-                          }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie
+                      data={deptChartData.slice(0, 5)}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={4}
+                      dataKey="count"
+                    >
+                      {deptChartData.slice(0, 5).map((entry, index) => {
+                        const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4'];
+                        return <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />;
+                      })}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '12px' }}
+                    />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={40} 
+                      iconType="circle"
+                      iconSize={8}
+                      formatter={(value) => {
+                        const dept = deptChartData.find(d => d.name === value);
+                        return <span style={{ fontSize: '11px', fontWeight: '600', color: '#64748b' }}>{value} ({dept?.count || 0})</span>;
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          {/* Chart 3: Monthly Earnings & Patient Growth */}
+          <div className="content-card analytics-card">
+            <div className="card-header-with-icon" style={{ marginBottom: '20px' }}>
+              <div className="header-title-area">
+                <BarChart3 className="header-icon status-color" />
+                <div>
+                  <h2>Earnings & Patient Growth</h2>
+                  <p className="card-subtitle">Monthly revenue and registrations comparison (6 months)</p>
+                </div>
+              </div>
+            </div>
+            <div className="chart-container" style={{ minHeight: '260px' }}>
+              {monthlyFinanceData.length === 0 ? (
+                <div className="no-chart-data">
+                  <p>No financial data available.</p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={monthlyFinanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                    <YAxis yAxisId="left" stroke="#3b82f6" fontSize={11} tickLine={false} axisLine={false} />
+                    <YAxis yAxisId="right" orientation="right" stroke="#10b981" fontSize={11} tickLine={false} axisLine={false} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '12px' }}
+                    />
+                    <Legend verticalAlign="bottom" height={40} iconType="rect" iconSize={10} />
+                    <Bar yAxisId="left" dataKey="earnings" name="Earnings ($)" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    <Bar yAxisId="right" dataKey="patients" name="Patients" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               )}
             </div>
           </div>
         </section>
 
-        {/* Chart 3: Status Breakdown Section */}
+        {/* Chart 4: Status Breakdown Section */}
         <section className="status-analytics-section content-card" style={{ marginBottom: '40px' }}>
           <div className="card-header-with-icon" style={{ marginBottom: '24px' }}>
             <div className="header-title-area">
-              <PieChart className="header-icon status-color" />
+              <PieChartIcon className="header-icon status-color" />
               <div>
                 <h2>Appointment Processing Status</h2>
                 <p className="card-subtitle">Performance breakdown of scheduling workflow statuses</p>
