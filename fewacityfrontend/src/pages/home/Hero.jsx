@@ -1,4 +1,3 @@
-import React from 'react';
 import './Hero.css';
 import landingImg from '../../assets/landing/landing.png';
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import AboutUs from '../home/AboutUs';
 import Stats from './Stats';
 import './About.css';

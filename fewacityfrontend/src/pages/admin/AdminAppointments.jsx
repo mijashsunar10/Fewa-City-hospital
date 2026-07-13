@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Search, Mail, Calendar, Eye, Edit2, Check, X, Download } from 'lucide-react';
+import { Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Search, Mail, Calendar, Edit2, Check, X, Download } from 'lucide-react';
 import axios from 'axios';
 import './AdminDashboard.css';
 import API_BASE_URL from '../../config/api';
@@ -38,7 +38,7 @@ const AdminAppointments = () => {
   }, [user, loading, navigate]);
 
   // Fetch all appointments
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       setListLoading(true);
       const config = {
@@ -53,13 +53,16 @@ const AdminAppointments = () => {
     } finally {
       setListLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     if (user && user.role === 'admin') {
-      fetchAppointments();
+      const timer = setTimeout(() => {
+        fetchAppointments();
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [user, token]);
+  }, [user, fetchAppointments]);
 
   const handleDownloadPrescription = async (apptId, doctorName) => {
     try {
@@ -341,7 +344,7 @@ const AdminAppointments = () => {
                           border: `1px solid ${appt.paymentStatus === 'Paid' ? '#99f6e4' : 
                                                 appt.paymentStatus === 'Pending' ? '#fde68a' : '#cbd5e1'}`
                         }}>
-                          {appt.paymentStatus === 'Paid' ? `Paid: Rs.${appt.amount}` : appt.paymentStatus === 'Pending' ? 'Pay Pending' : 'Unpaid'}
+                          {appt.paymentStatus === 'Paid' ? (appt.paymentMethod === 'Stripe' ? `Paid: $${appt.amount}` : `Paid: Rs.${appt.amount}`) : appt.paymentStatus === 'Pending' ? 'Pay Pending' : 'Unpaid'}
                         </span>
                       </div>
                     </td>
@@ -458,13 +461,19 @@ const AdminAppointments = () => {
                 <div>
                   <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 'bold' }}>Payment Status</label>
                   <div style={{ fontWeight: 'bold', fontSize: '13px', color: selectedAppt.paymentStatus === 'Paid' ? '#0f766e' : '#475569' }}>
-                    {selectedAppt.paymentStatus === 'Paid' ? 'PAID (Online Gateway)' : 'UNPAID / Walk-In'}
+                    {selectedAppt.paymentStatus === 'Paid' ? `PAID (${selectedAppt.paymentMethod || 'Online'})` : 'UNPAID / Walk-In'}
                   </div>
                 </div>
                 <div>
                   <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 'bold' }}>Amount & TXN ID</label>
                   <div style={{ fontSize: '13px', color: '#0f172a', fontWeight: '600' }}>
-                    {selectedAppt.paymentStatus === 'Paid' ? `Rs. ${selectedAppt.amount} (TXN: ${selectedAppt.khaltiTransactionId || 'N/A'})` : 'Rs. 0.00'}
+                    {selectedAppt.paymentStatus === 'Paid' ? (
+                      selectedAppt.paymentMethod === 'Stripe' ? (
+                        `$${selectedAppt.amount} (Intent: ${selectedAppt.stripePaymentIntentId || 'N/A'})`
+                      ) : (
+                        `Rs. ${selectedAppt.amount} (TXN: ${selectedAppt.khaltiTransactionId || 'N/A'})`
+                      )
+                    ) : 'Rs. 0.00'}
                   </div>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Award, BookOpen, Clock, Phone, GraduationCap, Users, Landmark, School, CheckCircle, Shield } from 'lucide-react';
 import './CollegePrograms.css';
 import useSEO from '../../hooks/useSEO';

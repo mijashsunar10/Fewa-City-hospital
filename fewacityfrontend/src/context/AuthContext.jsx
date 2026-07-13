@@ -1,24 +1,18 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useContext } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../config/api';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('fewa_user') || localStorage.getItem('fewa_admin_user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+  const [loading] = useState(false);
 
   // Set API base URL
   const API_URL = API_BASE_URL + '/api/auth';
-
-  useEffect(() => {
-    // Check if user is logged in
-    const storedUser = localStorage.getItem('fewa_user') || localStorage.getItem('fewa_admin_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
-  }, []);
 
   // Login User
   const login = async (email, password) => {
@@ -95,5 +89,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);
 export default AuthContext;

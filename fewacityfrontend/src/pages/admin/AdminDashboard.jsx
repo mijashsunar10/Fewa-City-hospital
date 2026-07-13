@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { LogOut, Shield, Users, Briefcase, LayoutGrid, Activity, Calendar, Mail, TrendingUp, BarChart3, PieChart as PieChartIcon } from 'lucide-react';
@@ -36,10 +36,8 @@ const AdminDashboard = () => {
   });
 
   const [appointments, setAppointments] = useState([]);
-  const [departmentsList, setDepartmentsList] = useState([]);
   const [messages, setMessages] = useState([]);
   const [timeframe, setTimeframe] = useState('all');
-  const [hoveredBarIndex, setHoveredBarIndex] = useState(null);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -49,7 +47,7 @@ const AdminDashboard = () => {
   }, [user, loading, navigate]);
 
   // Fetch stats and analytical lists from API
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const config = {
         headers: {
@@ -78,18 +76,20 @@ const AdminDashboard = () => {
       });
 
       setAppointments(apptsRes.data);
-      setDepartmentsList(deptsRes.data);
       setMessages(msgsRes.data);
     } catch (err) {
       console.error('Failed to load dashboard stats:', err);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     if (user && user.role === 'admin') {
-      fetchStats();
+      const timer = setTimeout(() => {
+        fetchStats();
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [user, token]);
+  }, [user, fetchStats]);
 
   const handleLogout = () => {
     logout();

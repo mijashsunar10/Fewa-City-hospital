@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Plus, Edit, Trash2, Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Upload, Image as ImageIcon, Search, Mail, Calendar } from 'lucide-react';
@@ -80,7 +80,7 @@ const AdminDepartments = () => {
   }, [user, loading, navigate]);
 
   // Fetch departments list
-  const fetchDepartments = async () => {
+  const fetchDepartments = useCallback(async () => {
     try {
       setListLoading(true);
       const response = await axios.get(API_BASE_URL + '/api/departments');
@@ -90,24 +90,27 @@ const AdminDepartments = () => {
     } finally {
       setListLoading(false);
     }
-  };
+  }, []);
 
   // Fetch doctors list
-  const fetchDoctors = async () => {
+  const fetchDoctors = useCallback(async () => {
     try {
       const response = await axios.get(API_BASE_URL + '/api/doctors');
       setDoctorsList(response.data);
     } catch (err) {
       console.error('Failed to fetch doctors list:', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (user && user.role === 'admin') {
-      fetchDepartments();
-      fetchDoctors();
+      const timer = setTimeout(() => {
+        fetchDepartments();
+        fetchDoctors();
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [user]);
+  }, [user, fetchDepartments, fetchDoctors]);
 
   const handleLogout = () => {
     logout();

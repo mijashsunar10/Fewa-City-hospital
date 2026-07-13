@@ -50,7 +50,7 @@ const appointmentSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ['None', 'Khalti', 'eSewa'],
+      enum: ['None', 'Khalti', 'eSewa', 'Stripe'],
       default: 'None',
     },
     amount: {
@@ -62,6 +62,14 @@ const appointmentSchema = new mongoose.Schema(
       default: '',
     },
     khaltiTransactionId: {
+      type: String,
+      default: '',
+    },
+    stripeSessionId: {
+      type: String,
+      default: '',
+    },
+    stripePaymentIntentId: {
       type: String,
       default: '',
     },

@@ -1,13 +1,19 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   User, Calendar, FileText, ClipboardList, LogOut, CheckCircle, Clock, XCircle, 
-  UserCheck, AlertCircle, Edit, MapPin, Phone, Award, ShieldAlert, BookOpen, ArrowLeft,
+  UserCheck, AlertCircle, MapPin, Phone, ArrowLeft,
   Bell, Check, Activity, Download
 } from 'lucide-react';
 import axios from 'axios';
 import API_BASE_URL from '../../config/api';
+
+const ALL_30MIN_SLOTS = [
+  "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+  "12:00 PM", "12:30 PM", "01:00 PM", "01:30 PM", "02:00 PM", "02:30 PM",
+  "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM"
+];
 
 const PatientDashboard = () => {
   const { user, token, logout, loading, updateProfile } = useAuth();
@@ -49,12 +55,7 @@ const PatientDashboard = () => {
   const [profileError, setProfileError] = useState('');
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
-  // 30-minute Time Slots
-  const ALL_30MIN_SLOTS = [
-    "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-    "12:00 PM", "12:30 PM", "01:00 PM", "01:30 PM", "02:00 PM", "02:30 PM",
-    "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM"
-  ];
+  // 30-minute Time Slots are declared at module scope.
 
   const [bookedSlots, setBookedSlots] = useState([]);
   const [isFetchingSlots, setIsFetchingSlots] = useState(false);
@@ -138,23 +139,26 @@ const PatientDashboard = () => {
   // Load Profile fields when user changes
   useEffect(() => {
     if (user) {
-      setProfileName(user.name || '');
-      setProfileEmail(user.email || '');
-      setProfilePhone(user.phone || '');
-      setProfileGender(user.gender || '');
-      setProfileAddress(user.address || '');
-      setProfileBloodGroup(user.bloodGroup || '');
-      setProfileHistory(user.medicalHistory || '');
-      if (user.dob) {
-        setProfileDob(new Date(user.dob).toISOString().split('T')[0]);
-      } else {
-        setProfileDob('');
-      }
+      const timer = setTimeout(() => {
+        setProfileName(user.name || '');
+        setProfileEmail(user.email || '');
+        setProfilePhone(user.phone || '');
+        setProfileGender(user.gender || '');
+        setProfileAddress(user.address || '');
+        setProfileBloodGroup(user.bloodGroup || '');
+        setProfileHistory(user.medicalHistory || '');
+        if (user.dob) {
+          setProfileDob(new Date(user.dob).toISOString().split('T')[0]);
+        } else {
+          setProfileDob('');
+        }
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [user]);
 
   // Fetch data
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!token) return;
     setIsLoadingDetails(true);
     const config = {
@@ -185,10 +189,10 @@ const PatientDashboard = () => {
     }
 
     setIsLoadingDetails(false);
-  };
+  }, [token]);
 
   // Fetch notifications
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!token) return;
     try {
       const config = {
@@ -201,7 +205,7 @@ const PatientDashboard = () => {
     } catch (err) {
       console.error('Error fetching notifications:', err);
     }
-  };
+  }, [token]);
 
   const handleMarkAsRead = async (notifId) => {
     try {
@@ -233,10 +237,13 @@ const PatientDashboard = () => {
 
   useEffect(() => {
     if (user && user.role === 'user') {
-      fetchData();
-      fetchNotifications();
+      const timer = setTimeout(() => {
+        fetchData();
+        fetchNotifications();
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [user, token]);
+  }, [user, fetchData, fetchNotifications]);
 
   // Set up live polling (every 10 seconds) for updates
   useEffect(() => {
@@ -244,7 +251,7 @@ const PatientDashboard = () => {
       const interval = setInterval(fetchNotifications, 10000);
       return () => clearInterval(interval);
     }
-  }, [user, token]);
+  }, [user, token, fetchNotifications]);
 
   useEffect(() => {
     if (activeTab === 'book' && departments.length > 0) {
@@ -271,10 +278,13 @@ const PatientDashboard = () => {
         });
 
         if (matchedDept) {
-          setBookingDept(matchedDept._id);
-          if (docId) {
-            setBookingDoc(docId);
-          }
+          const timer = setTimeout(() => {
+            setBookingDept(matchedDept._id);
+            if (docId) {
+              setBookingDoc(docId);
+            }
+          }, 0);
+          return () => clearTimeout(timer);
         }
       }
     }
@@ -349,6 +359,31 @@ const PatientDashboard = () => {
     } catch (err) {
       console.error('Error initiating payment:', err);
       setPaymentInitiateError(err.response?.data?.message || 'Khalti ePayment service is currently unavailable.');
+    } finally {
+      setIsInitiatingPayment(false);
+    }
+  };
+
+  const handleInitiateStripe = async (appointmentId) => {
+    setIsInitiatingPayment(true);
+    setPaymentInitiateError('');
+    try {
+      const config = {
+        headers: { Authorization: `Bearer ${token}` }
+      };
+      const res = await axios.post(
+        `${API_BASE_URL}/api/payments/stripe/initiate`,
+        { appointmentId },
+        config
+      );
+      if (res.data.success && res.data.paymentUrl) {
+        window.location.href = res.data.paymentUrl;
+      } else {
+        setPaymentInitiateError('Failed to retrieve payment redirect URL from Stripe.');
+      }
+    } catch (err) {
+      console.error('Error initiating Stripe payment:', err);
+      setPaymentInitiateError(err.response?.data?.message || 'Stripe card payment service is currently unavailable.');
     } finally {
       setIsInitiatingPayment(false);
     }
@@ -454,15 +489,6 @@ const PatientDashboard = () => {
     navigate('/login');
   };
 
-  if (loading || !user) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#156619]"></div>
-        <p className="mt-4 text-slate-600 font-semibold">Loading Portal...</p>
-      </div>
-    );
-  }
-
   // Filter doctors based on selected department slug or ID
   const filteredDoctors = doctors.filter(doc => {
     if (!bookingDept) return false;
@@ -508,6 +534,15 @@ const PatientDashboard = () => {
     const unread = notifications.find(n => !n.isRead);
     return unread || notifications[0];
   }, [notifications]);
+
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#156619]"></div>
+        <p className="mt-4 text-slate-600 font-semibold">Loading Portal...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
@@ -929,7 +964,9 @@ const PatientDashboard = () => {
                       </div>
                       <div className="flex justify-between pt-2 border-t border-slate-200/50">
                         <span className="text-slate-500 font-medium">Reservation Deposit Fee:</span>
-                        <span className="font-extrabold text-[#5c2d91] text-base">Rs. 150.00</span>
+                        <span className="font-extrabold text-slate-800 text-base">
+                          Rs. 150.00 <span className="text-xs text-slate-400 font-bold">(or $1.50 USD)</span>
+                        </span>
                       </div>
                     </div>
 
@@ -955,6 +992,24 @@ const PatientDashboard = () => {
                           <>
                             <span className="bg-white/20 text-white rounded px-2 py-0.5 text-[10px] font-extrabold mr-1">Rs. 150</span>
                             <span>Pay Booking Deposit via Khalti</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => handleInitiateStripe(createdAppointment._id)}
+                        disabled={isInitiatingPayment}
+                        className="w-full flex items-center justify-center gap-2 bg-[#635bff] hover:bg-[#4b44db] text-white font-extrabold py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition-all text-sm disabled:opacity-50"
+                      >
+                        {isInitiatingPayment ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                            <span>Directing to Stripe...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="bg-white/20 text-white rounded px-2 py-0.5 text-[10px] font-extrabold mr-1">$1.50</span>
+                            <span>Pay Deposit via Card (Stripe)</span>
                           </>
                         )}
                       </button>
@@ -1183,7 +1238,7 @@ const PatientDashboard = () => {
                                   appt.paymentStatus === 'Pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                                   'bg-slate-50 text-slate-600 border-slate-200'
                                 }`}>
-                                  {appt.paymentStatus === 'Paid' ? 'Paid (Khalti)' : appt.paymentStatus === 'Pending' ? 'Pay Pending' : 'Unpaid'}
+                                  {appt.paymentStatus === 'Paid' ? `Paid (${appt.paymentMethod || 'Online'})` : appt.paymentStatus === 'Pending' ? 'Pay Pending' : 'Unpaid'}
                                 </span>
                               </div>
                             </td>
@@ -1272,12 +1327,22 @@ const PatientDashboard = () => {
                             <td className="p-3 text-right">
                               <div className="flex flex-col items-end gap-2">
                                 {appt.paymentStatus !== 'Paid' && appt.status !== 'Cancelled' && (
-                                  <button
-                                    onClick={() => handleInitiateKhalti(appt._id)}
-                                    className="text-xs font-extrabold text-white bg-[#5c2d91] hover:bg-[#4c2479] py-1.5 px-3 rounded-lg transition-all shadow-sm inline-flex items-center gap-1 shrink-0"
-                                  >
-                                    Pay Rs. 150
-                                  </button>
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleInitiateKhalti(appt._id)}
+                                      className="text-[10px] md:text-xs font-extrabold text-white bg-[#5c2d91] hover:bg-[#4c2479] py-1.5 px-2 rounded-lg transition-all shadow-sm inline-flex items-center gap-1 shrink-0"
+                                      title="Pay Rs. 150 via Khalti"
+                                    >
+                                      Khalti
+                                    </button>
+                                    <button
+                                      onClick={() => handleInitiateStripe(appt._id)}
+                                      className="text-[10px] md:text-xs font-extrabold text-white bg-[#635bff] hover:bg-[#4b44db] py-1.5 px-2 rounded-lg transition-all shadow-sm inline-flex items-center gap-1 shrink-0"
+                                      title="Pay $1.50 via Card (Stripe)"
+                                    >
+                                      Card
+                                    </button>
+                                  </div>
                                 )}
                                 {(appt.status === 'Pending' || appt.status === 'Approved') && (
                                   <button

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ArrowLeft, Calendar, Shield, Users, CheckCircle, PhoneCall, Award, Activity, Heart, Sparkles } from 'lucide-react';

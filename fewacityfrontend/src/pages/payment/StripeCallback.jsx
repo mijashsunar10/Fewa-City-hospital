@@ -4,9 +4,9 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import API_BASE_URL from '../../config/api';
 import { CheckCircle2, XCircle, Loader2, ShieldCheck, Receipt } from 'lucide-react';
-import './KhaltiCallback.css';
+import './StripeCallback.css';
 
-const KhaltiCallback = () => {
+const StripeCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { token, loading: authLoading } = useAuth();
@@ -15,23 +15,20 @@ const KhaltiCallback = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [paymentDetails, setPaymentDetails] = useState(null);
 
-  const pidx = searchParams.get('pidx');
-  const transactionId = searchParams.get('transaction_id');
-  const amountPaisa = searchParams.get('amount');
+  const sessionId = searchParams.get('session_id');
 
   useEffect(() => {
-    // Scroll to top on load
     window.scrollTo(0, 0);
 
     const verifyPayment = async () => {
       if (!token) {
         setStatus('error');
-        setErrorMsg('Authorization token missing. Please log in and try again.');
+        setErrorMsg('Authorization token missing. Please log in to complete verification.');
         return;
       }
-      if (!pidx) {
+      if (!sessionId) {
         setStatus('error');
-        setErrorMsg('Invalid payment redirect data. Missing transaction pidx.');
+        setErrorMsg('Invalid Stripe redirect data. Missing checkout session_id.');
         return;
       }
 
@@ -43,8 +40,8 @@ const KhaltiCallback = () => {
         };
 
         const res = await axios.post(
-          `${API_BASE_URL}/api/payments/khalti/verify`,
-          { pidx },
+          `${API_BASE_URL}/api/payments/stripe/verify`,
+          { sessionId },
           config
         );
 
@@ -53,34 +50,34 @@ const KhaltiCallback = () => {
           setPaymentDetails(res.data.appointment);
         } else {
           setStatus('error');
-          setErrorMsg(res.data.message || 'Payment verification failed.');
+          setErrorMsg(res.data.message || 'Stripe payment verification failed.');
         }
       } catch (err) {
-        console.error('Error verifying payment:', err);
+        console.error('Error verifying Stripe payment:', err);
         setStatus('error');
-        setErrorMsg(err.response?.data?.message || 'A network error occurred while verifying the payment.');
+        setErrorMsg(err.response?.data?.message || 'A network error occurred while verifying the card payment.');
       }
     };
 
     if (!authLoading) {
       verifyPayment();
     }
-  }, [pidx, token, authLoading]);
+  }, [sessionId, token, authLoading]);
 
   const handleReturnToDashboard = () => {
     navigate('/patient/dashboard?tab=appointments');
   };
 
   return (
-    <div className="khalti-callback-wrapper">
-      <div className="khalti-callback-card">
+    <div className="stripe-callback-wrapper">
+      <div className="stripe-callback-card">
         {status === 'verifying' && (
           <div className="status-container verifying">
             <Loader2 className="spinner-icon" />
-            <h2>Verifying Payment</h2>
-            <p>Please wait while we secure your slot reservation with Khalti Gateway...</p>
+            <h2>Verifying Card Payment</h2>
+            <p>Please wait while we secure your slot reservation with Stripe Checkout...</p>
             <div className="verification-steps">
-              <span className="step active">1. Directing back from Khalti</span>
+              <span className="step active">1. Directing back from Stripe Gateway</span>
               <span className="step active">2. Securing token validation</span>
               <span className="step loading">3. Approving appointment slot</span>
             </div>
@@ -92,8 +89,8 @@ const KhaltiCallback = () => {
             <div className="success-badge-animation">
               <CheckCircle2 className="success-icon animate-pop" />
             </div>
-            <span className="khalti-badge">Khalti Instant ePayment</span>
-            <h2>Rs. {(amountPaisa ? parseInt(amountPaisa) / 100 : 150).toFixed(2)} Paid</h2>
+            <span className="stripe-badge">Stripe Credit/Debit Card</span>
+            <h2>$1.50 Paid</h2>
             <p className="success-sub">Slot Reservation Deposit Completed Successfully!</p>
 
             {paymentDetails && (
@@ -118,16 +115,10 @@ const KhaltiCallback = () => {
                       {new Date(paymentDetails.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} at {paymentDetails.timeSlot}
                     </span>
                   </div>
-                  {transactionId && (
+                  {sessionId && (
                     <div className="receipt-row">
-                      <span className="label">Transaction ID:</span>
-                      <span className="value code">{transactionId}</span>
-                    </div>
-                  )}
-                  {pidx && (
-                    <div className="receipt-row">
-                      <span className="label">Khalti pidx:</span>
-                      <span className="value code">{pidx.slice(0, 16)}...</span>
+                      <span className="label">Session ID:</span>
+                      <span className="value code">{sessionId.slice(0, 18)}...</span>
                     </div>
                   )}
                 </div>
@@ -136,7 +127,7 @@ const KhaltiCallback = () => {
 
             <div className="security-guarantee">
               <ShieldCheck size={14} className="shield-icon" />
-              <span>Slot Locked. You can view your slot details anytime in the dashboard.</span>
+              <span>Card payment verified. Your slot is now active and approved!</span>
             </div>
 
             <button className="primary-dashboard-btn" onClick={handleReturnToDashboard}>
@@ -148,16 +139,16 @@ const KhaltiCallback = () => {
         {status === 'error' && (
           <div className="status-container error">
             <XCircle className="error-icon" />
-            <h2>Payment Unsuccessful</h2>
-            <p className="error-sub">We were unable to complete your online slot booking reservation.</p>
+            <h2>Stripe Payment Unsuccessful</h2>
+            <p className="error-sub">We were unable to complete your card deposit reservation.</p>
             
             <div className="error-reason-box">
               <strong>Reason:</strong>
-              <p>{errorMsg || 'The transaction was cancelled or failed at the payment gateway level.'}</p>
+              <p>{errorMsg || 'The card transaction was cancelled or declined.'}</p>
             </div>
 
             <p className="support-info">
-              If your bank/wallet was debited, the amount will be automatically refunded by Khalti, or you can contact Fewa City support at <strong>9765940555</strong>.
+              For any support regarding card transactions, contact Fewa City billing support at <strong>9765940555</strong>.
             </p>
 
             <div className="error-action-buttons">
@@ -175,4 +166,4 @@ const KhaltiCallback = () => {
   );
 };
 
-export default KhaltiCallback;
+export default StripeCallback;

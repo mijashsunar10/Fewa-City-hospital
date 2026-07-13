@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Search, Calendar, Stethoscope, Heart, ShieldAlert, Award, Phone } from 'lucide-react';
+import { Search, Calendar, Stethoscope, Heart, ShieldAlert, Award } from 'lucide-react';
 import axios from 'axios';
 import './DoctorsPage.css';
 import API_BASE_URL from '../../config/api';

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Plus, Edit, Trash2, Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Upload, FileText, Image as ImageIcon, Search, Mail, Calendar } from 'lucide-react';
+import { Plus, Edit, Trash2, Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Upload, Image as ImageIcon, Search, Mail, Calendar } from 'lucide-react';
 import axios from 'axios';
 import './AdminDashboard.css';
 import './AdminDoctors.css';
@@ -75,7 +75,7 @@ const AdminDoctors = () => {
   }, [user, loading, navigate]);
 
   // Fetch doctors list
-  const fetchDoctors = async () => {
+  const fetchDoctors = useCallback(async () => {
     try {
       setListLoading(true);
       const response = await axios.get(API_BASE_URL + '/api/doctors');
@@ -85,13 +85,16 @@ const AdminDoctors = () => {
     } finally {
       setListLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (user && user.role === 'admin') {
-      fetchDoctors();
+      const timer = setTimeout(() => {
+        fetchDoctors();
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [user]);
+  }, [user, fetchDoctors]);
 
   // Fetch departments list for select dropdown
   useEffect(() => {

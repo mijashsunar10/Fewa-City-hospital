@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Search, Info } from 'lucide-react';
@@ -54,8 +54,12 @@ const DepartmentsPage = () => {
         setLoading(false);
       }
     };
-    fetchData();
-  }, []);
+
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [location]);
 
   // Update active department if hash changes
   useEffect(() => {
@@ -63,8 +67,11 @@ const DepartmentsPage = () => {
     if (hash && departments.length > 0) {
       const matchedDept = departments.find(d => d.slug === hash);
       if (matchedDept) {
-        setActiveDeptId(matchedDept._id);
-        window.scrollTo(0, 0);
+        const timer = setTimeout(() => {
+          setActiveDeptId(matchedDept._id);
+          window.scrollTo(0, 0);
+        }, 0);
+        return () => clearTimeout(timer);
       }
     }
   }, [location, departments]);
@@ -135,7 +142,10 @@ const DepartmentsPage = () => {
   // Auto-select first filtered department if the active one is filtered out
   useEffect(() => {
     if (filteredDepartments.length > 0 && !filteredDepartments.some(d => d._id === activeDeptId)) {
-      setActiveDeptId(filteredDepartments[0]._id);
+      const timer = setTimeout(() => {
+        setActiveDeptId(filteredDepartments[0]._id);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [filteredDepartments, activeDeptId]);
 

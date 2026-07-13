@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Plus, Edit, Trash2, Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Upload, FileText, Image as ImageIcon, Search, Mail, Calendar } from 'lucide-react';
+import { Plus, Edit, Trash2, Shield, Users, Briefcase, LayoutGrid, LogOut, ArrowLeft, Upload, Image as ImageIcon, Search, Mail, Calendar } from 'lucide-react';
 import axios from 'axios';
 import './AdminDashboard.css';
 import './AdminServices.css';
@@ -50,7 +50,7 @@ const AdminServices = () => {
   }, [user, loading, navigate]);
 
   // Fetch services list
-  const fetchServices = async () => {
+  const fetchServices = useCallback(async () => {
     try {
       setListLoading(true);
       const response = await axios.get(API_BASE_URL + '/api/services');
@@ -60,13 +60,16 @@ const AdminServices = () => {
     } finally {
       setListLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (user && user.role === 'admin') {
-      fetchServices();
+      const timer = setTimeout(() => {
+        fetchServices();
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [user]);
+  }, [user, fetchServices]);
 
   const handleLogout = () => {
     logout();

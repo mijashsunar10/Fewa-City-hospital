@@ -1,4 +1,5 @@
 import Appointment from '../models/Appointment.js';
+import Stripe from 'stripe';
 
 // @desc    Initiate Khalti Payment for an appointment
 // @route   POST /api/payments/khalti/initiate
@@ -142,5 +143,138 @@ export const verifyKhaltiPayment = async (req, res) => {
   } catch (err) {
     console.error('Error verifying Khalti payment:', err);
     res.status(500).json({ message: 'Internal server error during payment verification' });
+  }
+};
+
+// @desc    Initiate Stripe Checkout Session for an appointment
+// @route   POST /api/payments/stripe/initiate
+// @access  Private
+export const initiateStripePayment = async (req, res) => {
+  try {
+    const { appointmentId } = req.body;
+
+    if (!appointmentId) {
+      return res.status(400).json({ message: 'Appointment ID is required' });
+    }
+
+    const appointment = await Appointment.findById(appointmentId).populate('doctor department patient');
+
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    // Verify ownership (unless admin)
+    if (appointment.patient._id.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to pay for this appointment' });
+    }
+
+    if (appointment.paymentStatus === 'Paid') {
+      return res.status(400).json({ message: 'Appointment is already paid' });
+    }
+
+    // Fixed Booking/Deposit Fee of USD 1.50 (150 cents)
+    const depositAmountInCents = 150;
+
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+      return res.status(500).json({ message: 'Stripe configuration missing on server' });
+    }
+
+    const stripe = new Stripe(stripeSecretKey);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: `Reservation Deposit - Dr. ${appointment.doctor.name}`,
+              description: `Appointment Deposit for ${appointment.department.title} consultation`,
+            },
+            unit_amount: depositAmountInCents,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${frontendUrl}/payment/stripe/callback?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/patient-dashboard?payment=cancelled`,
+      client_reference_id: appointment._id.toString(),
+      customer_email: req.user.email,
+    });
+
+    // Update appointment with Stripe session info
+    appointment.stripeSessionId = session.id;
+    appointment.paymentMethod = 'Stripe';
+    appointment.amount = 1.50; // Amount in USD
+    await appointment.save();
+
+    res.status(200).json({
+      success: true,
+      paymentUrl: session.url,
+    });
+  } catch (err) {
+    console.error('Error initiating Stripe payment:', err);
+    res.status(400).json({
+      message: `Stripe payment initiation failed: ${err.message}`,
+      error: err,
+    });
+  }
+};
+
+// @desc    Verify Stripe Payment
+// @route   POST /api/payments/stripe/verify
+// @access  Private
+export const verifyStripePayment = async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+
+    if (!sessionId) {
+      return res.status(400).json({ message: 'Session ID is required' });
+    }
+
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+      return res.status(500).json({ message: 'Stripe configuration missing on server' });
+    }
+
+    const stripe = new Stripe(stripeSecretKey);
+
+    // Retrieve the session from Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (!session || session.payment_status !== 'paid') {
+      return res.status(400).json({
+        message: 'Stripe payment is incomplete or not paid',
+        paymentStatus: session ? session.payment_status : 'unknown',
+      });
+    }
+
+    // Find appointment by sessionId
+    const appointment = await Appointment.findOne({ stripeSessionId: sessionId }).populate('doctor department patient');
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment associated with this Stripe session not found' });
+    }
+
+    // Update payment details
+    appointment.paymentStatus = 'Paid';
+    appointment.stripePaymentIntentId = session.payment_intent || '';
+    
+    // Automatically approve slot since it is paid!
+    if (appointment.status === 'Pending') {
+      appointment.status = 'Approved';
+    }
+    await appointment.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Stripe payment verified successfully and slot approved!',
+      appointment,
+    });
+  } catch (err) {
+    console.error('Error verifying Stripe payment:', err);
+    res.status(500).json({ message: 'Internal server error during Stripe payment verification' });
   }
 };

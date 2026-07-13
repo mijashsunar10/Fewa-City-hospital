@@ -1,4 +1,3 @@
-import React from 'react';
 import './HospitalLocation.css';
 
 const HospitalLocation = () => {

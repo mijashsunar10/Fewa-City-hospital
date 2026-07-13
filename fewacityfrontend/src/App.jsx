@@ -23,6 +23,7 @@ import PatientLogin from './pages/patient/PatientLogin'
 import PatientRegister from './pages/patient/PatientRegister'
 import PatientDashboard from './pages/patient/PatientDashboard'
 import KhaltiCallback from './pages/payment/KhaltiCallback'
+import StripeCallback from './pages/payment/StripeCallback'
 import { AuthProvider } from './context/AuthContext'
 import EmergencyContact from './components/EmergencyContact'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -63,6 +64,14 @@ function AppContent() {
             element={
               <ProtectedRoute allowedRoles={['user']}>
                 <KhaltiCallback />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/payment/stripe/callback" 
+            element={
+              <ProtectedRoute allowedRoles={['user']}>
+                <StripeCallback />
               </ProtectedRoute>
             } 
           />

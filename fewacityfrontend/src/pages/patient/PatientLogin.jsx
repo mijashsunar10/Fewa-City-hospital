@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Activity, Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
@@ -9,7 +9,7 @@ const PatientLogin = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login, user, loading } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
 
   // Parse redirect query parameter

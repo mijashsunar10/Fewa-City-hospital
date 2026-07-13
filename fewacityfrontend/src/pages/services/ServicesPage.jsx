@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Info, Calendar, Award, Shield, Check } from 'lucide-react';
+import { Search, Info, Calendar, Award, Shield } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import './ServicesPage.css';

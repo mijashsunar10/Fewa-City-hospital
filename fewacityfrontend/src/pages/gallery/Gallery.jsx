@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Eye, X, ZoomIn } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, ZoomIn } from 'lucide-react';
 import './Gallery.css';
 import useSEO from '../../hooks/useSEO';
 
